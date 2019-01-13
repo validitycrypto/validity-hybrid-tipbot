@@ -1,0 +1,25 @@
+{
+  "name": "validity-hybrid-tipbot",
+  "version": "1.0.0",
+  "description": "EGEM/VLDY discord and telegram tipbot.",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/validitycrypto/validity-hybrid-tipbot.git"
+  },
+  "author": "Samuel JJ Gosling",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/validitycrypto/validity-hybrid-tipbot/issues"
+  },
+  "homepage": "https://github.com/validitycrypto/validity-hybrid-tipbot#readme",
+  "dependencies": {
+    "discord.js": "^11.4.2",
+    "firebase": "^5.7.3",
+    "telegraf": "^3.26.0",
+    "web3": "^1.0.0-beta.37"
+  }
+}
