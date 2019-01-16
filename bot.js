@@ -9,18 +9,9 @@ const Web3 = require('web3');
 
 const _web3 = new Web3(Web3.givenProvider || "https://jsonrpc.egem.io/custom");
 const _instance = new _web3.eth.Contract(json.abi, location);
-const _tg = "703021129:AAFpQDQAdFPTPmuDVRtlXLWiWgiZK8DV0xw";
 
 const _decimals = Math.pow(10,18);
 
-const _preferences = {
-  apiKey: "AIzaSyBhiCVmJR7upQQ38rt2yIt7NsqxfRTCbiU",
-  authDomain: "validitybot.firebaseapp.com",
-  databaseURL: "https://validitybot.firebaseio.com",
-  projectId: "validitybot",
-  storageBucket: "validitybot.appspot.com",
-  messagingSenderId: "73773199918"
-};
 
 initialiseDatabase = async() => {
    firebase.initializeApp(_preferences);
