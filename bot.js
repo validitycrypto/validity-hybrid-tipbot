@@ -3,14 +3,21 @@ const json  = require("./build/contracts/ERC20d.json");
 const telegramApi = require('telegraf/telegram');
 const discordjs = require('discord.js');
 const telegraf = require('telegraf');
+const Extra = require('telegraf/extra')
+const Markup = require('telegraf/markup')
 
 const firebase = require('firebase');
 const Web3 = require('web3');
 
-const _web3 = new Web3(Web3.givenProvider || "http://127.0.0.1:9545/");
+const _web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:9545');
 const _instance = new _web3.eth.Contract(json.abi, location);
 
-const _decimals = Math.pow(10,18);
+const _ether = Math.pow(10,18);
+
+const keyboard = (_hash) => Markup.inlineKeyboard([
+  Markup.urlButton('🔗 TX',`https://explorer.egem.io/tx/${_hash}`),
+  Markup.callbackButton('🔥 Tip', 'tip')
+])
 
 
 initialiseDatabase = async() => {
@@ -58,7 +65,6 @@ tipUser = async(_user1, _user2, _amount, _asset) => {
   } else if(reciever == undefined){
     return "⚠️ Recipent has not generated an account"
   } else {
-    _amount = parseFloat(_amount)*_decimals;
     var token = await tokenbalance(payee);
     var gas = await gasBalance(payee);
     if(_asset == "VLDY" && gas != 0 && token != 0){
@@ -90,15 +96,16 @@ createAccount = async(_username, _chatid) => {
 
 tokenbalance = async(_target) => {
   const balance = await _instance.methods.balanceOf(_target).call();
-  return parseFloat(balance/_decimals).toFixed(4);
+  return parseFloat(balance/_ether).toFixed(4);
 }
 
 gasBalance = async(_target) => {
   var balance = await _web3.eth.getBalance(_target)
-  return parseFloat(balance/_decimals).toFixed(4);
+  return parseFloat(balance/_ether).toFixed(4);
 }
 
 gasTransfer = async(_payee, _recipent, _amount) => {
+  _amount = _web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18));
   const tx = await _web3.eth.sendTransaction({
     value: _amount,
     from: _payee,
@@ -109,15 +116,15 @@ gasTransfer = async(_payee, _recipent, _amount) => {
 }
 
 tokenTransfer = async(_payee, _recipent, _amount) => {
-  _amount = parseFloat(_amount)*_decimals;
-  const tx = await _instance.methods.transfer(_recipent, _amount,
-  { from: _payee, gas: 2750000 }).send();
+  _amount = _web3.utils.toHex(_web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18)));
+  const tx = await _instance.methods.transfer(_recipent, _amount)
+  .send({ from: _payee, gas: 2750000 });
   return tx.transactionHash;
 }
 
 retractFee = async(_payee, _recipent, _amount) => {
   return await _web3.eth.sendTransaction({
-    amount: _decimals,
+    amount: _ether,
     from: _payee,
     to: _reciever,
     gas: 2750000
@@ -132,10 +139,10 @@ const tapi = new telegramApi(_tg)
 tbot.start((ctx) => ctx.reply(
   'Welcome to the Validity (VDLY) Hybrid tipbot 🎉'
    + '\n\nCompatible across Discord and Telegram 💜💙'
-   + '\nFor more info check out @ValidityCrypto ✅'
    + '\nTo start, register an account by using the command: /generate'
-   + '\nNow, you can recieve and send tips in EGEM and VLDY from and to other users !'
+   + '\n\nNow, you can recieve and send tips in EGEM and VLDY from and to other users !'
    + '\nCheck out all the bot has to offer by using the commands: /help and /commands'
+   + '\nFor more info check out @ValidityCrypto ✅'
    + '\nMost importantly, have fun.'
    + '\n\nCreated by @xGozzy'
 ))
@@ -165,12 +172,13 @@ tbot.command('generate', async(ctx) => {
   return ctx.reply(`${nuo}`);
 })
 
-tbot.command('/syip', async(ctx) => {
-  var message = ctx.message.text.split("/syip ").pop();
+tbot.command('/kip', async(ctx) => {
+  var message = ctx.message.text.split("/kip ").pop();
   var params = message.split(" ");
-  var tx = await tipUser(ctx.message.from.username,
-    params[0], params[1], params[2]);
-  return ctx.reply(`${tx}`)
+  var tx = keyboard(await tipUser(ctx.message.from.username,
+    params[0], params[1], params[2]));
+  return ctx.reply(`@${ctx.message.from.username} tipped ${params[0]} of ${params[1]} ${params[2]} 🎉`,
+  Extra.markup(tx))
 })
 
 tbot.launch()
