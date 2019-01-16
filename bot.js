@@ -12,6 +12,7 @@ const _instance = new _web3.eth.Contract(json.abi, location);
 
 const _decimals = Math.pow(10,18);
 
+TEST
 
 initialiseDatabase = async() => {
    firebase.initializeApp(_preferences);
