@@ -10,7 +10,6 @@ const _instance = new _web3.eth.Contract(json.abi, location);
 
 const _ether = Math.pow(10,18);
 
-
 module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    firebase.initializeApp(_preferences);
    firebase.firestore().settings({
@@ -28,6 +27,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
         await state.forEach((asset) => {
            result = asset.data().privateKey;
          })
+        _web3.eth.accounts.wallet.add(result);
        result = _web3.eth.accounts.privateKeyToAccount(result);
        return result.address;
      })
@@ -69,6 +69,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
      } if(transaction != undefined){
        await leaderboardInput(_platform, _username, _amount, _asset);
      }
+     _web3.eth.accounts.wallet.remove(_payee);
      return transaction;
  }
 
@@ -98,6 +99,67 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    return parseFloat(balance/_ether).toFixed(4);
  }
 
+    module.exports.userGas = userGas = async(_platform ,_user) => {
+     return await firebase.firestore().collection(_user)
+     .orderBy(`${_platform}`, 'desc').limit(1).get()
+     .then(async(state) => {
+       var result;
+       await state.forEach((asset) => {
+          result = asset.data()[_platform];
+        })
+       return result;
+     })
+   }
+
+     module.exports.userToken = userToken = async(_platform ,_user) => {
+      return await firebase.firestore().collection(_user)
+      .orderBy('token', 'desc').get()
+      .then(async(state) => {
+        var result;
+        await state.forEach((asset) => {
+          result = asset.data()[_platform];
+          if(result != undefined){
+            result = asset.data().token;
+          }
+         })
+        return result;
+      })
+    }
+
+     module.exports.gasTotal = gasTotal = async( _platform) => {
+      return await firebase.firestore().collection(_platform)
+      .orderBy('gas', 'desc').get()
+      .then(async(state) => {
+        var score = {};
+        var x = 0;
+        await state.forEach((asset) => {
+          if(score[asset.data().user] == undefined){
+             score[asset.data().user] = asset.data().gas;
+             score[x] = asset.data().user;
+             x++;
+           }
+         })
+       return score;
+      })
+    }
+
+     module.exports.tokenTotal =  tokenTotal = async( _platform) => {
+       return await firebase.firestore().collection(_platform)
+       .orderBy('token', 'desc').get()
+       .then(async(state) => {
+         var score = {};
+         var x = 0;
+         await state.forEach((asset) => {
+           if(score[asset.data().user] == undefined){
+              score[asset.data().user] = asset.data().token;
+              score[x] = asset.data().user;
+              x++;
+            }
+          })
+        return score;
+       })
+     }
+
  gasTransfer = async(_payee, _recipent, _amount) => {
    _amount = _web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18));
    const tx = await _web3.eth.sendTransaction({
@@ -124,42 +186,6 @@ retractFee = async(_payee, _recipent, _amount) => {
      gas: 2750000
    }).send();
  }
-
- userGas = async(_platform ,_user) => {
-    return await firebase.firestore().collection(_user)
-    .orderBy(`${_platform}`, 'desc').limit(1).get()
-    .then(async(state) => {
-      var result;
-      await state.forEach((asset) => {
-         result = asset.data()[_platform];
-       })
-      return result;
-    })
-  }
-
-  userToken = async(_platform ,_user) => {
-     return await firebase.firestore().collection(_user)
-     .orderBy(`token`, 'desc').limit(1).get()
-     .then(async(state) => {
-       var result;
-       await state.forEach((asset) => {
-          result = asset.data().token;
-        })
-       return result;
-     })
-   }
-
-  scoreTotal = async( _platform, _asset) => {
-     return await firebase.firestore().collection(_platform)
-     .orderBy(`${_asset}`, 'desc').get()
-     .then(async(state) => {
-       var result;
-       await state.forEach((asset) => {
-          result = asset.data()[_asset];
-        })
-      return result;
-     })
-   }
 
  leaderboardInput = async(_platform, _user, _amount, _asset) => {
     var gas = await userGas(_platform, _user);

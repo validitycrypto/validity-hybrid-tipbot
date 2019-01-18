@@ -1,5 +1,3 @@
-const { getAccount, getID, tipUser, createAccount, gasBalance, tokenbalance }  = require('./wallet.js');
-
 const telegramApi = require('telegraf/telegram');
 const Markup = require('telegraf/markup');
 const Extra = require('telegraf/extra');
@@ -7,7 +5,7 @@ const wallet = require('./wallet.js');
 const telegraf = require('telegraf');
 
 const transactionModal  = (_hash) => Markup.inlineKeyboard([
-  Markup.urlButton('🔗 Transaction',`https://explorer.egem.io/tx/${_hash}`),
+  Markup.urlButton('🔗 Tx',`https://explorer.egem.io/tx/${_hash}`),
   Markup.callbackButton('🔥 Tip', 'fire')
 ])
 
@@ -31,6 +29,25 @@ tbot.start((ctx) => ctx.reply(
    + '\nMost importantly, have fun.'
    + '\n\nCreated by @xGozzy'
 ,Extra.markup(menuModal)))
+
+tbot.command('leaderboard', async(ctx) => {
+  var token = await wallet.tokenTotal("telegram");
+  var gas = await wallet.gasTotal("telegram");
+  return ctx.reply(`
+  👾 EtherGem Leaderboard 👾
+  1: @${gas[0]} - ${gas[gas[0]]} EGEM
+  2: @${gas[1]} - ${gas[gas[1]]} EGEM
+  3: @${gas[2]} - ${gas[gas[2]]} EGEM
+  4: @${gas[3]} - ${gas[gas[3]]} EGEM
+  5: @${gas[4]} - ${gas[gas[4]]} EGEM
+
+  🍀 Validity Leaderboard 🍀
+  1: @${token[0]} - ${token[token[0]]} VLDY
+  2: @${token[1]} - ${token[token[1]]} VLDY
+  3: @${token[2]} - ${token[token[2]]} VLDY
+  4: @${token[3]} - ${token[token[3]]} VLDY
+  5: @${token[4]} - ${token[token[4]]} VLDY`);
+})
 
 tbot.command('balance', async(ctx) => {
   var account = await wallet.getAccount(ctx.message.from.username);
@@ -104,9 +121,9 @@ tbot.action('commands', async(ctx) => {
   )
 })
 
-tbot.command('/yip', async(ctx) => {
+tbot.command('/tip', async(ctx) => {
   var caller = ctx.message.from.username;
-  var parameters = ctx.message.text.split("/yip ").pop().split(" ");
+  var parameters = ctx.message.text.split("/tip ").pop().split(" ");
   var reciever = await wallet.getAccount(parameters[0].replace('@', ''));
   var payee = await wallet.getAccount(caller);
 
@@ -141,7 +158,6 @@ tbot.action('fire', async(ctx) => {
   var parameters = JSON.stringify(ctx.callbackQuery.message.text).split(" ");
   var reciever = await wallet.getAccount(parameters[2].replace('@', ''));
   var payee = await wallet.getAccount(caller);
-
   if(payee == undefined){
     return ctx.answerCbQuery("⚠️  Please generate an account firstly by using the command: /generate");
   } else {
