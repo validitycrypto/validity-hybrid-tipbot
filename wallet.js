@@ -10,6 +10,7 @@ const _instance = new _web3.eth.Contract(json.abi, location);
 
 const _ether = Math.pow(10,18);
 
+
 module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    firebase.initializeApp(_preferences);
    firebase.firestore().settings({
@@ -35,7 +36,6 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    }
  }
 
-
   module.exports.getID = getID = async(_username) => {
     return await firebase.firestore().collection(_username)
     .orderBy('id', 'desc').limit(1).get()
@@ -48,14 +48,26 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
   })
  }
 
-  module.exports.tipUser = tipUser = async(_platform, _payee, _reciever, _amount, _asset) => {
+ module.exports.getUsername = getUsername = async(_chatid) => {
+   return await firebase.firestore().collection(_chatid)
+   .orderBy('user', 'desc').limit(1).get()
+   .then(async(state) => {
+     var result;
+      await state.forEach((asset) => {
+         result = asset.data().user;
+      })
+    return result;
+ })
+}
+
+  module.exports.tipUser = tipUser = async(_platform, _username, _payee, _reciever, _amount, _asset) => {
     var transaction;
      if(_asset == "VLDY"){
        transaction = await tokenTransfer(_payee, _reciever, _amount);
      } else if(_asset == "EGEM"){
        transaction = await gasTransfer(_payee, _reciever, _amount);
      } if(transaction != undefined){
-       await leaderboardInput(_platform, _user, _amount, _asset);
+       await leaderboardInput(_platform, _username, _amount, _asset);
      }
      return transaction;
  }
@@ -65,7 +77,8 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    if(await getAccount(_username) == undefined){
      var account = _web3.eth.accounts.create();
      await firebase.firestore().collection(_chatid).add({
-       privateKey: account.privateKey });
+       privateKey: account.privateKey,
+       user: _username});
      await firebase.firestore().collection(_username).add({
        id: _chatid });
      return `🎉  Congratzi your new account is ${account.address}`;
@@ -112,18 +125,29 @@ retractFee = async(_payee, _recipent, _amount) => {
    }).send();
  }
 
- userScore = async( _platform ,_user) => {
+ userGas = async(_platform ,_user) => {
     return await firebase.firestore().collection(_user)
     .orderBy(`${_platform}`, 'desc').limit(1).get()
     .then(async(state) => {
-      var array;
+      var result;
       await state.forEach((asset) => {
-         array.push(asset.data()[_platform]);
-         array.push(asset.data().token);
+         result = asset.data()[_platform];
        })
-     return array;
+      return result;
     })
   }
+
+  userToken = async(_platform ,_user) => {
+     return await firebase.firestore().collection(_user)
+     .orderBy(`token`, 'desc').limit(1).get()
+     .then(async(state) => {
+       var result;
+       await state.forEach((asset) => {
+          result = asset.data().token;
+        })
+       return result;
+     })
+   }
 
   scoreTotal = async( _platform, _asset) => {
      return await firebase.firestore().collection(_platform)
@@ -137,14 +161,23 @@ retractFee = async(_payee, _recipent, _amount) => {
      })
    }
 
- leaderboardInput = async(_platform, _user, _amount _asset) => {
-    var score = await userScore(_platform, _user,);
-    if(_asset == "EGEM"){ score = score[0]; }
-    else if(_asset == "VLDY"){ score = score[1]; }
-      return await firebase.firestore().collection(_user).add({
-        [_asset]: score+_amount
-      })
-      return await firebase.firestore().collection(_platform).add({
-        [_asset]: score+_amount
-      })
+ leaderboardInput = async(_platform, _user, _amount, _asset) => {
+    var gas = await userGas(_platform, _user);
+    var token = await userToken(_platform, _user);
+    if(gas == undefined){ gas = 0; }
+    if(token == undefined){ token = 0; }
+    if(_asset == "EGEM"){
+      gas = parseFloat(gas)+parseFloat(_amount);
+    } else if(_asset == "VLDY"){
+      token = parseFloat(token)+parseFloat(_amount);
+    }
+    await firebase.firestore().collection(_platform).add({
+      token: token,
+      user: _user,
+      gas: gas
+    })
+    return await firebase.firestore().collection(_user).add({
+      [_platform]: gas,
+      token: token
+    })
  }

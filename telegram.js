@@ -104,9 +104,9 @@ tbot.action('commands', async(ctx) => {
   )
 })
 
-tbot.command('/tip', async(ctx) => {
+tbot.command('/yip', async(ctx) => {
   var caller = ctx.message.from.username;
-  var parameters = ctx.message.text.split("/tip ").pop().split(" ");
+  var parameters = ctx.message.text.split("/yip ").pop().split(" ");
   var reciever = await wallet.getAccount(parameters[0].replace('@', ''));
   var payee = await wallet.getAccount(caller);
 
@@ -119,7 +119,7 @@ tbot.command('/tip', async(ctx) => {
     var gas = await wallet.gasBalance(payee);
     if(gas != 0 && token != 0 && parseFloat(parameters[1]) <= token && parameters[2] == "VLDY"
        || gas != 0 && parseFloat(parameters[1]) <= gas && parameters[2] == "EGEM"){
-      var tx = await wallet.tipUser(payee, reciever, parameters[1], parameters[2]);
+      var tx = await wallet.tipUser("telegram", caller, payee, reciever, parameters[1], parameters[2]);
       return ctx.reply(`@${caller} tipped ${parameters[0]} of ${parameters[1]} ${parameters[2]} 🎉`,
         Extra.markup(transactionModal(tx)))
     } else if(token < parseFloat(parameters[1]) && parameters[2] == "VLDY"){
@@ -149,7 +149,7 @@ tbot.action('fire', async(ctx) => {
     var gas = await wallet.gasBalance(payee);
     if(gas != 0 && token != 0 && parseFloat(parameters[4]) <= token && parameters[5] == "VLDY"
        || gas != 0 && parseFloat(parameters[4]) <= gas && parameters[5] == "EGEM"){
-      var tx = await wallet.tipUser(payee, reciever, parameters[4],parameters[5]);
+      var tx = await wallet.tipUser("telegram", caller, payee, reciever, parameters[4],parameters[5]);
       return ctx.reply(`@${caller} tipped ${parameters[2]} of ${parameters[4]} ${parameters[5]} 🔥`,
         Extra.markup(transactionModal(tx)))
     } else if(token < parseFloat(parameters[4]) && parameters[5] == "VLDY"){
