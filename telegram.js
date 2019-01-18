@@ -15,7 +15,7 @@ const menuModal = Markup.inlineKeyboard([
   [ Markup.callbackButton('⭐️ Generate', 'generate'),
     Markup.callbackButton('💰 Balance', 'balance') ],
   [ Markup.callbackButton('☘️ Deposit', 'deposit') ,
-    Markup.callbackButton('🔑 Command', 'command') ],
+    Markup.callbackButton('🔑 Command', 'commands') ],
   [ Markup.callbackButton('✅ Help', 'help'),
     Markup.urlButton('🌐 Website', 'https://validity.ae') ]
 ])
@@ -74,6 +74,34 @@ tbot.command('generate', async(ctx) => {
 tbot.action('generate', async(ctx) => {
   var nuo = await wallet.createAccount(ctx.callbackQuery.from.username, ctx.callbackQuery.id);
   return ctx.reply(`${nuo}`);
+})
+
+tbot.command('/commands', async(ctx) => {
+  return ctx.reply(
+   `\nWithdraw: /withdraw <address> <amount> <asset>
+    \nTip: /tip <amount> <user> <asset>
+    \nRain: /rain <amount> <asset>
+    \nLeaderboard: /leaderboard
+    \nGenerate: /generate
+    \nDeposit: /deposit
+    \nBalance: /balance
+    \nMenu UI: /start
+    \nHelp: /help`
+  )
+})
+
+tbot.action('commands', async(ctx) => {
+  return ctx.reply(
+   `\nWithdraw: /withdraw <address> <amount> <asset>
+    \nTip: /tip <amount> <user> <asset>
+    \nRain: /rain <amount> <asset>
+    \nLeaderboard: /leaderboard
+    \nGenerate: /generate
+    \nDeposit: /deposit
+    \nBalance: /balance
+    \nMenu UI: /start
+    \nHelp: /help`
+  )
 })
 
 tbot.command('/tip', async(ctx) => {

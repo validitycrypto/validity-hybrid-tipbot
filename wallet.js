@@ -48,12 +48,16 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
   })
  }
 
-  module.exports.tipUser = tipUser = async(_payee, _reciever, _amount, _asset) => {
+  module.exports.tipUser = tipUser = async(_platform, _payee, _reciever, _amount, _asset) => {
+    var transaction;
      if(_asset == "VLDY"){
-       return await tokenTransfer(_payee, _reciever, _amount);
+       transaction = await tokenTransfer(_payee, _reciever, _amount);
      } else if(_asset == "EGEM"){
-       return await gasTransfer(_payee, _reciever, _amount);
-   }
+       transaction = await gasTransfer(_payee, _reciever, _amount);
+     } if(transaction != undefined){
+       await leaderboardInput(_platform, _user, _amount, _asset);
+     }
+     return transaction;
  }
 
   module.exports.createAccount = createAccount = async(_username, _chatid) => {
@@ -106,4 +110,41 @@ retractFee = async(_payee, _recipent, _amount) => {
      to: _reciever,
      gas: 2750000
    }).send();
+ }
+
+ userScore = async( _platform ,_user) => {
+    return await firebase.firestore().collection(_user)
+    .orderBy(`${_platform}`, 'desc').limit(1).get()
+    .then(async(state) => {
+      var array;
+      await state.forEach((asset) => {
+         array.push(asset.data()[_platform]);
+         array.push(asset.data().token);
+       })
+     return array;
+    })
+  }
+
+  scoreTotal = async( _platform, _asset) => {
+     return await firebase.firestore().collection(_platform)
+     .orderBy(`${_asset}`, 'desc').get()
+     .then(async(state) => {
+       var result;
+       await state.forEach((asset) => {
+          result = asset.data()[_asset];
+        })
+      return result;
+     })
+   }
+
+ leaderboardInput = async(_platform, _user, _amount _asset) => {
+    var score = await userScore(_platform, _user,);
+    if(_asset == "EGEM"){ score = score[0]; }
+    else if(_asset == "VLDY"){ score = score[1]; }
+      return await firebase.firestore().collection(_user).add({
+        [_asset]: score+_amount
+      })
+      return await firebase.firestore().collection(_platform).add({
+        [_asset]: score+_amount
+      })
  }
