@@ -1,5 +1,5 @@
 
-const location = "0x9b729a8f44e0cc028754aa84787f00dd96077710";
+const location = "0x43ea0e9527097a4b6da70004ae8626430758360d";
 const json  = require("./build/contracts/ERC20d.json");
 
 const firebase = require('firebase');
@@ -82,21 +82,18 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
        user: _username});
      await firebase.firestore().collection(_username).add({
        id: _chatid });
-     return `🎉  Congratzi your new account is ${account.address}`;
-   }
-   else {
-     return "🚫  You already have an account"
+     return account.address;
    }
  }
 
   module.exports.tokenbalance = tokenBalance = async(_target) => {
    const balance = await _instance.methods.balanceOf(_target).call();
-   return parseFloat(balance/_ether).toFixed(4);
+   return parseFloat(balance/_ether).toFixed(2);
  }
 
   module.exports.gasBalance = gasBalance = async(_target) => {
    var balance = await _web3.eth.getBalance(_target)
-   return parseFloat(balance/_ether).toFixed(4);
+   return parseFloat(balance/_ether).toFixed(2);
  }
 
     module.exports.userGas = userGas = async(_platform ,_user) => {
@@ -116,10 +113,11 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
       .orderBy('token', 'desc').get()
       .then(async(state) => {
         var result;
+        var x = 0;
         await state.forEach((asset) => {
-          result = asset.data()[_platform];
-          if(result != undefined){
+          if(asset.data()[_platform] != undefined && x == 0){
             result = asset.data().token;
+            x++;
           }
          })
         return result;
@@ -134,7 +132,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
         var x = 0;
         await state.forEach((asset) => {
           if(score[asset.data().user] == undefined){
-             score[asset.data().user] = asset.data().gas;
+             score[asset.data().user] = parseFloat(asset.data().gas).toFixed(2);
              score[x] = asset.data().user;
              x++;
            }
@@ -151,7 +149,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
          var x = 0;
          await state.forEach((asset) => {
            if(score[asset.data().user] == undefined){
-              score[asset.data().user] = asset.data().token;
+              score[asset.data().user] =  parseFloat(asset.data().token).toFixed(2);
               score[x] = asset.data().user;
               x++;
             }
@@ -161,7 +159,11 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
      }
 
  gasTransfer = async(_payee, _recipent, _amount) => {
-   _amount = _web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18));
+   if(_amount % 1 == 0){
+     _amount = _web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18));
+   } else if(_amount % 1 != 0 ){
+     _amount = _web3.utils.toHex(_amount*Math.pow(10,18));
+   }
    const tx = await _web3.eth.sendTransaction({
      value: _amount,
      from: _payee,
@@ -172,7 +174,11 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
  }
 
 tokenTransfer = async(_payee, _recipent, _amount) => {
-   _amount = _web3.utils.toHex(_web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18)));
+   if(_amount % 1 == 0){
+    _amount = _web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18));
+   } else if(_amount % 1 != 0 ){
+     _amount = _web3.utils.toHex(_amount*Math.pow(10,18));
+   }
    const tx = await _instance.methods.transfer(_recipent, _amount)
    .send({ from: _payee, gas: 2750000 });
    return tx.transactionHash;

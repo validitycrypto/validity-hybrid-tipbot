@@ -10,21 +10,34 @@ const transactionModal  = (_hash) => Markup.inlineKeyboard([
 ])
 
 const menuModal = Markup.inlineKeyboard([
+  [ Markup.callbackButton('🏆 Leaderboard', 'leaderboard')],
   [ Markup.callbackButton('⭐️ Generate', 'generate'),
     Markup.callbackButton('💰 Balance', 'balance') ],
-  [ Markup.callbackButton('☘️ Deposit', 'deposit') ,
-    Markup.callbackButton('🔑 Command', 'commands') ],
-  [ Markup.callbackButton('✅ Help', 'help'),
+  [ Markup.callbackButton('🌀 Deposit', 'deposit') ,
+    Markup.callbackButton('⚒ Commands', 'commands') ],
+  [ Markup.callbackButton('🙌 Help', 'help'),
     Markup.urlButton('🌐 Website', 'https://validity.ae') ]
 ])
+
+const commandList =
+   '⚒ ***Commands*** ⚒'
+   +'\n\n***Withdraw:*** `/withdraw <address> <amount> <asset>`'
+   +'\n***Tip:*** `/tip <amount> <user> <asset>`'
+   +'\n***Rain***: `/rain <amount> <asset>`'
+   +'\n***Leaderboard:*** `/leaderboard`'
+   +'\n***Generate:*** `/generate`'
+   +'\n***Deposit:*** `/deposit`'
+   +'\n***Balance:*** `/balance`'
+   +'\n***Menu:*** `/start`'
+   +'\n***Help:*** `/help`';
 
 module.exports.tbot = tbot = new telegraf(_tg)
 const tapi = new telegramApi(_tg)
 
-tbot.start((ctx) => ctx.reply(
-  'Welcome to the Validity (VDLY) Hybrid tipbot 🎉'
-   + '\n\nCompatible across Discord and Telegram 💜💙'
-   + '\nTo start, generate an account to start tipping!'
+tbot.start((ctx) => ctx.replyWithMarkdown(
+  '🎉 ***Welcome to the Validity (VDLY) Hybrid tipbot*** 🎉'
+   + '\n\nCompatible across `Discord` and `Telegram` 💜💙'
+   + '\n\nTo start, generate an account to start tipping!'
    + '\nFor more info check out @ValidityCrypto ✅'
    + '\nMost importantly, have fun.'
    + '\n\nCreated by @xGozzy'
@@ -33,92 +46,102 @@ tbot.start((ctx) => ctx.reply(
 tbot.command('leaderboard', async(ctx) => {
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
-  return ctx.reply(`
-  👾 EtherGem Leaderboard 👾
-  1: @${gas[0]} - ${gas[gas[0]]} EGEM
-  2: @${gas[1]} - ${gas[gas[1]]} EGEM
-  3: @${gas[2]} - ${gas[gas[2]]} EGEM
-  4: @${gas[3]} - ${gas[gas[3]]} EGEM
-  5: @${gas[4]} - ${gas[gas[4]]} EGEM
+  return ctx.replyWithMarkdown(
+  '👾 ***EtherGem*** 👾'
+  +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + '`' + '` EGEM`'
+  +'\n***2:*** ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + '`' + '` EGEM`'
+  +'\n***3:*** ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + '`' + '` EGEM`'
+  +'\n***4:*** ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + '`' + '` EGEM`'
+  +'\n***5:*** ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + '`' + '` EGEM`'
 
-  🍀 Validity Leaderboard 🍀
-  1: @${token[0]} - ${token[token[0]]} VLDY
-  2: @${token[1]} - ${token[token[1]]} VLDY
-  3: @${token[2]} - ${token[token[2]]} VLDY
-  4: @${token[3]} - ${token[token[3]]} VLDY
-  5: @${token[4]} - ${token[token[4]]} VLDY`);
+  +'\n\n🍀 ***Validity*** 🍀'
+  +'\n\n***1:*** ' + `@${token[0]}` + ' ***-*** ' + '`' + `${token[token[0]]}` + '`' + '` VLDY`'
+  +'\n***2:*** ' + `@${token[1]}` + ' ***-*** ' + '`' + `${token[token[1]]}` + '`' + '` VLDY`'
+  +'\n***3:*** ' + `@${token[2]}` + ' ***-*** ' + '`' + `${token[token[2]]}` + '`' + '` VLDY`'
+  +'\n***4:*** ' + `@${token[3]}` + ' ***-*** ' + '`' + `${token[token[3]]}` + '`' + '` VLDY`'
+  +'\n***5:*** ' + `@${token[4]}` + ' ***-*** ' + '`' + `${token[token[4]]}` + '`' + '` VLDY`');
+
+})
+
+tbot.action('leaderboard', async(ctx) => {
+  var token = await wallet.tokenTotal("telegram");
+  var gas = await wallet.gasTotal("telegram");
+  return ctx.replyWithMarkdown(
+  '👾 ***EtherGem*** 👾'
+  +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + '`' + '` EGEM`'
+  +'\n***2:*** ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + '`' + '` EGEM`'
+  +'\n***3:*** ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + '`' + '` EGEM`'
+  +'\n***4:*** ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + '`' + '` EGEM`'
+  +'\n***5:*** ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + '`' + '` EGEM`'
+
+  +'\n\n🍀 ***Validity*** 🍀'
+  +'\n\n***1:*** ' + `@${token[0]}` + ' ***-*** ' + '`' + `${token[token[0]]}` + '`' + '` VLDY`'
+  +'\n***2:*** ' + `@${token[1]}` + ' ***-*** ' + '`' + `${token[token[1]]}` + '`' + '` VLDY`'
+  +'\n***3:*** ' + `@${token[2]}` + ' ***-*** ' + '`' + `${token[token[2]]}` + '`' + '` VLDY`'
+  +'\n***4:*** ' + `@${token[3]}` + ' ***-*** ' + '`' + `${token[token[3]]}` + '`' + '` VLDY`'
+  +'\n***5:*** ' + `@${token[4]}` + ' ***-*** ' + '`' + `${token[token[4]]}` + '`' + '` VLDY`');
+
 })
 
 tbot.command('balance', async(ctx) => {
   var account = await wallet.getAccount(ctx.message.from.username);
   if(account == undefined){
-    return ctx.reply("⚠️  Please generate an account first by using the command: /generate");
+    return ctx.replyWithMarkdown('⚠️ ***Please generate an account first by using the command:*** `/generate`');
   } else {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
-    return ctx.reply(`💎  EGEM: ${gas} ✅ VLDY: ${token}`);
+    return ctx.replyWithMarkdown(`@${ctx.message.from.username}'s funds: ` + '`' + ` 💎 ${gas}`
+    + ' EGEM ' + ` 🍀 ${token}`  + ' VLDY' + '`');
   }
 })
 
-tbot.action('balance', async(ctx) => {
+tbot.action('balance' , async(ctx) => {
   var response;
   var account = await wallet.getAccount(ctx.callbackQuery.from.username);
   if(account == undefined){
-    response = "⚠️  Please generate an account first by using the command: /generate";
+    return ctx.replyWithMarkdown('⚠️ ***Please generate an account first by using the command:*** `/generate`');
   } else {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
-    response = `💎  EGEM: ${gas} ✅ VLDY: ${token}`;
+    return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username}'s funds: ` + '`' + ` 💎 ${gas}`
+    + ' EGEM ' + ` 🍀 ${token}` + ' VLDY' + '`');
   }
-  return ctx.reply(response);
 })
 
 tbot.command('deposit', async(ctx) => {
   var nuo = await wallet.getAccount(ctx.message.from.username);
-  return ctx.reply(`@${ctx.message.from.username} your depositing address is: ${nuo}`);
+  return ctx.replyWithMarkdown(`@${ctx.message.from.username} your depositing address is: ` + '`' + `${nuo}` + '`');
 })
 
 tbot.action('deposit', async(ctx) => {
   var nuo = await wallet.getAccount(ctx.callbackQuery.from.username);
-  return ctx.reply(`@${ctx.callbackQuery.from.username} your depositing address is: ${nuo}`);
+  return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username} your depositing address is: ` + '`' + `${nuo}` + '`');
 })
 
 tbot.command('generate', async(ctx) => {
-  var nuo = await wallet.createAccount(ctx.message.from.username, ctx.message.chat.id);
-  return ctx.reply(`${nuo}`);
+  var address = await wallet.createAccount(ctx.message.from.username, ctx.message.chat.id);
+  if(address == undefined){
+    return ctx.replyWithMarkdown(`🚫 @${ctx.message.from.username} ***you have already generated an account***`);
+  } else if(address != undefined) {
+    return ctx.replyWithMarkdown(`@${ctx.message.from.username} your account address is: ` + '`' + `${address}` + '`');
+  }
 })
 
 tbot.action('generate', async(ctx) => {
-  var nuo = await wallet.createAccount(ctx.callbackQuery.from.username, ctx.callbackQuery.id);
-  return ctx.reply(`${nuo}`);
+  var address = await wallet.createAccount(ctx.callbackQuery.from.username, ctx.callbackQuery.id);
+  if(address == undefined){
+    return ctx.replyWithMarkdown(`🚫 @${ctx.callbackQuery.from.username} ***you have already generated an account***`);
+  } else if(address != undefined) {
+    return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username} your account address is: ` + '`' + `${address}` + '`');
+  }
 })
 
 tbot.command('/commands', async(ctx) => {
-  return ctx.reply(
-   `\nWithdraw: /withdraw <address> <amount> <asset>
-    \nTip: /tip <amount> <user> <asset>
-    \nRain: /rain <amount> <asset>
-    \nLeaderboard: /leaderboard
-    \nGenerate: /generate
-    \nDeposit: /deposit
-    \nBalance: /balance
-    \nMenu UI: /start
-    \nHelp: /help`
-  )
+  return ctx.replyWithMarkdown(commandList)
 })
 
 tbot.action('commands', async(ctx) => {
-  return ctx.reply(
-   `\nWithdraw: /withdraw <address> <amount> <asset>
-    \nTip: /tip <amount> <user> <asset>
-    \nRain: /rain <amount> <asset>
-    \nLeaderboard: /leaderboard
-    \nGenerate: /generate
-    \nDeposit: /deposit
-    \nBalance: /balance
-    \nMenu UI: /start
-    \nHelp: /help`
-  )
+  return ctx.replyWithMarkdown(commandList)
 })
 
 tbot.command('/tip', async(ctx) => {
@@ -128,27 +151,29 @@ tbot.command('/tip', async(ctx) => {
   var payee = await wallet.getAccount(caller);
 
   if(payee == undefined){
-    return ctx.reply("⚠️  Please generate an account firstly by using the command: /generate");
+    return ctx.replyWithMarkdown('⚠️ ***Please generate an account first by using the command:** `/generate`');
   } else if(reciever == undefined){
-    return ctx.reply("⚠️  Recipent has not generated an account");
+    return ctx.replyWithMarkdown('⚠️ ***Recipent has not generated an account***');
+  } else if(reciever == payee){
+    return ctx.replyWithMarkdown('🙃 ***Hey bucko, you cannot tip yourself***');
   } else {
     var token = await wallet.tokenbalance(payee);
     var gas = await wallet.gasBalance(payee);
     if(gas != 0 && token != 0 && parseFloat(parameters[1]) <= token && parameters[2] == "VLDY"
        || gas != 0 && parseFloat(parameters[1]) <= gas && parameters[2] == "EGEM"){
       var tx = await wallet.tipUser("telegram", caller, payee, reciever, parameters[1], parameters[2]);
-      return ctx.reply(`@${caller} tipped ${parameters[0]} of ${parameters[1]} ${parameters[2]} 🎉`,
+      return ctx.replyWithMarkdown(`@${caller} tipped ${parameters[0]} of ` + ' `' + `${parameters[1]} ${parameters[2]}` + ' `' +  '🎉',
         Extra.markup(transactionModal(tx)))
     } else if(token < parseFloat(parameters[1]) && parameters[2] == "VLDY"){
-      return ctx.reply("🚫  Insufficent token balance available for transaction");
+      return ctx.replyWithMarkdown('🚫  ***Insufficent token balance available for transaction***');
     } else if(gas < parseFloat(parameters[1]) && parameters[2] == "EGEM"){
-      return ctx.reply("🚫  Insufficent gas balance available for transaction");
+      return ctx.replyWithMarkdown('🚫  ***Insufficent gas balance available for transaction***');
     } else if(token == 0 && gas != 0){
-      return ctx.reply("🚫  No tokens available for transaction");
+      return ctx.replyWithMarkdown('🚫  ***No tokens available for transaction***');
     } else if(gas == 0){
-      return ctx.reply("🚫  No gas available for transaction");
+      return ctx.replyWithMarkdown('🚫  ***No gas available for transaction***');
     } else {
-      return ctx.reply("🚫  Incorrect command format");
+      return ctx.replyWithMarkdown('🚫  ***Incorrect command format***');
     }
   }
 })
@@ -158,19 +183,22 @@ tbot.action('fire', async(ctx) => {
   var parameters = JSON.stringify(ctx.callbackQuery.message.text).split(" ");
   var reciever = await wallet.getAccount(parameters[2].replace('@', ''));
   var payee = await wallet.getAccount(caller);
+
   if(payee == undefined){
     return ctx.answerCbQuery("⚠️  Please generate an account firstly by using the command: /generate");
+  } else if(reciever == payee){
+    return ctx.answerCbQuery('⚠️ Hey dude, you cannot tip yourself');
   } else {
     var token = await wallet.tokenbalance(payee);
     var gas = await wallet.gasBalance(payee);
-    if(gas != 0 && token != 0 && parseFloat(parameters[4]) <= token && parameters[5] == "VLDY"
-       || gas != 0 && parseFloat(parameters[4]) <= gas && parameters[5] == "EGEM"){
-      var tx = await wallet.tipUser("telegram", caller, payee, reciever, parameters[4],parameters[5]);
-      return ctx.reply(`@${caller} tipped ${parameters[2]} of ${parameters[4]} ${parameters[5]} 🔥`,
+    if(gas != 0 && token != 0 && parseFloat(parameters[5]) <= token && parameters[6] == "VLDY"
+       || gas != 0 && parseFloat(parameters[5]) <= gas && parameters[6] == "EGEM"){
+      var tx = await wallet.tipUser("telegram", caller, payee, reciever, parameters[5],parameters[6]);
+      return ctx.replyWithMarkdown(`@${caller} tipped ${parameters[2]} of ` + ' `' + `${parameters[5]} ${parameters[6]}` + ' `' +  '🔥',
         Extra.markup(transactionModal(tx)))
-    } else if(token < parseFloat(parameters[4]) && parameters[5] == "VLDY"){
+    } else if(token < parseFloat(parameters[5]) && parameters[6] == "VLDY"){
       return ctx.answerCbQuery("🚫  Insufficent token balance available for transaction");
-    } else if(gas < parseFloat(parameters[4]) && parameters[5] == "EGEM"){
+    } else if(gas < parseFloat(parameters[5]) && parameters[6] == "EGEM"){
       return ctx.answerCbQuery("🚫  Insufficent gas balance available for transaction");
     } else if(token == 0 && gas != 0){
       return ctx.answerCbQuery("🚫  No tokens available for transaction");
