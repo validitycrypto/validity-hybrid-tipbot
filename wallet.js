@@ -160,9 +160,9 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
 
  gasTransfer = async(_payee, _recipent, _amount) => {
    if(_amount % 1 == 0){
-     _amount = _web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18));
-   } else if(_amount % 1 != 0 ){
-     _amount = _web3.utils.toHex(_amount*Math.pow(10,18));
+     _amount = _web3.utils.toHex(_web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18)));
+   } else if(_amount % 1 != 0){
+     _amount = _web3.utils.toHex(parseFloat(_amount*Math.pow(10,18)));
    }
    const tx = await _web3.eth.sendTransaction({
      value: _amount,
@@ -175,9 +175,9 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
 
 tokenTransfer = async(_payee, _recipent, _amount) => {
    if(_amount % 1 == 0){
-    _amount = _web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18));
-   } else if(_amount % 1 != 0 ){
-     _amount = _web3.utils.toHex(_amount*Math.pow(10,18));
+    _amount = _web3.utils.toHex(_web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18)));
+   } else if(_amount % 1 != 0){
+     _amount = _web3.utils.toHex(parseFloat(_amount*Math.pow(10,18)));
    }
    const tx = await _instance.methods.transfer(_recipent, _amount)
    .send({ from: _payee, gas: 2750000 });

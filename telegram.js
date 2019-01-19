@@ -159,6 +159,7 @@ tbot.command('/tip', async(ctx) => {
   } else {
     var token = await wallet.tokenbalance(payee);
     var gas = await wallet.gasBalance(payee);
+    if(parameters[1] % 1 != 0 && parseFloat(parameters[1]) > 999){ parameters[1] = parameters[1] - parameters[1] % 1; }
     if(gas != 0 && token != 0 && parseFloat(parameters[1]) <= token && parameters[2] == "VLDY"
        || gas != 0 && parseFloat(parameters[1]) <= gas && parameters[2] == "EGEM"){
       var tx = await wallet.tipUser("telegram", caller, payee, reciever, parameters[1], parameters[2]);
