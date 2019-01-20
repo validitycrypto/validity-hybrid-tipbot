@@ -9,6 +9,11 @@ const transactionModal  = (_hash) => Markup.inlineKeyboard([
   Markup.callbackButton('🔥 Tip', 'fire')
 ])
 
+const withdrawModal  = (_hash) => Markup.inlineKeyboard([
+  Markup.urlButton('🔗 Tx',`https://explorer.egem.io/tx/${_hash}`),
+  Markup.callbackButton('🙌 Praise', 'praise')
+])
+
 const menuModal = Markup.inlineKeyboard([
   [ Markup.callbackButton('🏆 Leaderboard', 'leaderboard')],
   [ Markup.callbackButton('🍀 Generate', 'generate'),
@@ -18,6 +23,22 @@ const menuModal = Markup.inlineKeyboard([
   [ Markup.callbackButton('⭐️ Help', 'help'),
     Markup.urlButton('🌐 Website', 'https://validity.ae') ]
 ])
+
+var randomPraise = [
+  'Hallelujah! 👏',
+  'For Nakamoto?',
+  'Where is my tip?',
+  'HODL',
+  'Wen deposit? 👀'
+];
+
+var adminICO = [
+  'I have a marketing proposal for your ICO admin 🗣',
+  'Blah, blah, blah, blah, BLAH!',
+  'This is my turf dude',
+  'We are good hun',
+  'REEEEEEEEEEEE'
+];
 
 const commandList =
    '⚒ ***Commands*** ⚒'
@@ -72,6 +93,8 @@ const commandList =
 
 module.exports.tbot = tbot = new telegraf(_tg)
 const tapi = new telegramApi(_tg)
+
+tbot.hears('hi', (ctx) => ctx.reply('Hey there'))
 
 tbot.start((ctx) => ctx.replyWithMarkdown(
   '🌀 ***Welcome to the Validity (VDLY) Hybrid tipbot*** 🌀'
@@ -172,17 +195,30 @@ tbot.command('withdraw', async(ctx) => {
     return ctx.replyWithMarkdown('⚠️ ***Please generate an account first by using the command:*** `/generate`');
   } else if(parameters[0].length != 42){
     return ctx.replyWithMarkdown('⚠️ ***Incorrect EtherGem address***');
-  } else {
+  } else if(parameters[2] == undefined){
+    return ctx.replyWithMarkdown('⚠️ ***Incorrect asset type***');
+  } else if(isNaN(parameters[0])){
+      return ctx.replyWithMarkdown('⚠️ *** Not a number ***');
+  } else if(parameters[1][0] == 0 && parameters[1][1] == "x"){
+        return ctx.replyWithMarkdown('⚠️ *** HEY, YOU STOP ! ***');
+  } else if(parameters[1] < 0){
+      return ctx.replyWithMarkdown('Want me to detuct that from your balance? 👋');
+  } else if(parameters[1] == 0){
+      return ctx.replyWithMarkdown('Now why would you want to do that? 🤔');
+  } else if(!(parameters[2] == "VLDY" || parameters[2] == "EGEM")){
+      return ctx.replyWithMarkdown('⚠️ *** Incorrect asset type ***');
+  } else if((parameters[2] == "VLDY" || parameters[2] == "EGEM")){
+
     var token = await wallet.tokenbalance(caller);
     var gas = await wallet.gasBalance(caller);
 
   if(parameters[1] % 1 != 0 && parseFloat(parameters[1]) > 999){ parameters[1] = parameters[1] - parameters[1] % 1; }
-  if(gas != 0 && token != 0 && parseFloat(parameters[0]) <= token && parameters[2] == "VLDY"
-     || gas != 0 && parseFloat(parameters[1]) <= gas && parameters[2] == "EGEM"){
+  if(parseFloat(0.00275) <= gas && parseFloat(parameters[1]) <= token && parameters[2] == "VLDY"
+     || parseFloat(parameters[1]+0.00275) <= gas && parameters[2] == "EGEM"){
     var tx = await wallet.withdrawFunds(caller, parameters[0], parameters[1], parameters[2]);
     if(tx != undefined){
       return ctx.replyWithMarkdown(`@${ctx.message.from.username} withdrew to ` + ' `' + `${parameters[0]}` + '`' +  ' of ' + ' `' + `${parameters[1]} ${parameters[2]}` + ' `' +  ' 📤',
-      Extra.markup(transactionModal(tx)));
+      Extra.markup(withdrawModal(tx)));
     } else {
       return ctx.replyWithMarkdown(`🚫 ***Failed to withdraw, please reformat parameters or contact the operator***`);
     }
@@ -210,7 +246,7 @@ tbot.command('generate', async(ctx) => {
 })
 
 tbot.action('generate', async(ctx) => {
-  var address = await wallet.createAccount(ctx.callbackQuery.from.username, ctx.callbackQuery.id);
+  var address = await wallet.createAccount(ctx.callbackQuery.from.username, ctx.callbackQuery.from.id);
   if(address == undefined){
     return ctx.replyWithMarkdown(`🚫 @${ctx.callbackQuery.from.username} ***you have already generated an account***`);
   } else if(address != undefined) {
@@ -218,19 +254,21 @@ tbot.action('generate', async(ctx) => {
   }
 })
 
-tbot.command('/commands', async(ctx) => {
-  return ctx.replyWithMarkdown(commandList)
+tbot.command('/commands',(ctx) => {
+  return ctx.replyWithMarkdown(commandList);
 })
 
-tbot.action('commands', async(ctx) => {
-  return ctx.replyWithMarkdown(commandList)
+tbot.action('commands',(ctx) => {
+  return ctx.replyWithMarkdown(commandList);
 })
 
-tbot.command('clear', async(ctx) => {
-  await wallet.clear();
-  return ctx.replyWithMarkdown(`***DONE***`)
+tbot.action('praise', (ctx) => {
+  return ctx.replyWithMarkdown(randomPraise[Math.floor(Math.random() * randomPraise.length)]);
 })
 
+tbot.command('admin', (ctx) => {
+  return ctx.replyWithMarkdown(adminICO[Math.floor(Math.random() * adminICO.length)]);
+})
 
 tbot.command('/tip', async(ctx) => {
   var caller = ctx.message.from.username;
@@ -242,11 +280,19 @@ tbot.command('/tip', async(ctx) => {
     return ctx.replyWithMarkdown('⚠️ ***Please generate an account first by using the command:*** `/generate`');
   } else if(reciever == undefined){
     return ctx.replyWithMarkdown('⚠️ ***Recipent has not generated an account***');
-  } else if(reciever == payee){
+  } else if(caller == parameters[0].replace('@', '')){
     return ctx.replyWithMarkdown('🙃 ***Hey bucko, you cannot tip yourself***');
-  } else if(parameters[2] == undefined){
+  } else if(isNaN(parameters[1])){
+      return ctx.replyWithMarkdown('⚠️ *** Not a number ***');
+  } else if(parameters[1][0] == 0 && parameters[1][1] == "x"){
+      return ctx.replyWithMarkdown('⚠️ *** HEY, YOU STOP ! ***');
+  } else if(parameters[1] < 0){
+    return ctx.replyWithMarkdown('Want me to detuct that from your balance? 👋');
+  } else if(parameters[1] == 0){
+        return ctx.replyWithMarkdown('Now why would you want to do that? 🤔');
+  } else if(!(parameters[2] == "VLDY" || parameters[2] == "EGEM")){
     return ctx.replyWithMarkdown('⚠️ *** Incorrect asset type ***');
-  } else if(parameters[2] == "VLDY" || parameters[2] == "EGEM"){
+  } else if((parameters[2] == "VLDY" || parameters[2] == "EGEM")){
     var token = await wallet.tokenbalance(payee);
     var gas = await wallet.gasBalance(payee);
     if(parameters[1] % 1 != 0 && parseFloat(parameters[1]) > 999){ parameters[1] = parameters[1] - parameters[1] % 1; }
@@ -259,7 +305,7 @@ tbot.command('/tip', async(ctx) => {
       } else {
           return ctx.replyWithMarkdown(`🚫 ***Failed to tip, please reformat parameters or contact the operator***`);
       }
-    } else if(gas != 0 && token < parseFloat(parameters[1]) && parameters[2] == "VLDY"){
+    } else if(parseFloat(0.00275) <= gas && token < parseFloat(parameters[1]) && parameters[2] == "VLDY"){
       return ctx.replyWithMarkdown('🚫  ***Insufficent token balance available for transaction***');
     } else if(parseFloat(parameters[5]+0.00275) < gas && parameters[2] == "EGEM"){
       return ctx.replyWithMarkdown('🚫  ***Insufficent gas balance available for transaction***');
@@ -280,10 +326,8 @@ tbot.action('fire', async(ctx) => {
   var payee = await wallet.getAccount(caller);
   if(payee == undefined){
     return ctx.answerCbQuery("⚠️  Please generate an account firstly by using the command: /generate");
-  } else if(reciever == payee){
+  } else if(caller == parameters[2].replace('@', '')){
     return ctx.answerCbQuery('⚠️ Hey dude, you cannot tip yourself');
-  } else if(parameters[6] == undefined){
-    return ctx.answerCbQuery('⚠️ *** Incorrect asset type ***');
   } else if(parameters[6] == "VLDY" || parameters[6] == "EGEM"){
     var token = await wallet.tokenbalance(payee);
     var gas = await wallet.gasBalance(payee);
@@ -304,8 +348,8 @@ tbot.action('fire', async(ctx) => {
       return ctx.answerCbQuery("🚫  No tokens available for transaction");
     } else if(gas > 0.00275){
       return ctx.answerCbQuery("🚫  No gas available for transaction");
-    }
   }
+}
 });
 
 tbot.command('/rain', async(ctx) => {
@@ -314,11 +358,17 @@ tbot.command('/rain', async(ctx) => {
   var payee = await wallet.getAccount(caller);
   if(payee == undefined){
     return ctx.replyWithMarkdown('⚠️ ***Please generate an account first by using the command:*** `/generate`');
-  } else if(isNaN(parameters[0]) == true){
+  } else if(isNaN(parameters[0])){
       return ctx.replyWithMarkdown('⚠️ *** Not a number ***');
-  } else if(parameters[1] == undefined){
-      return ctx.answerCbQuery('⚠️ *** Incorrect asset type ***');
-  } else if(parameters[1] == "VLDY" || parameters[1] == "EGEM"){
+  } else if(parameters[0][0] == 0 && parameters[0][1] == "x"){
+      return ctx.replyWithMarkdown('⚠️ *** HEY, YOU STOP ! ***');
+  } else if(parameters[0] < 0){
+      return ctx.replyWithMarkdown('Want me to detuct that from your balance? 👋');
+  } else if(parameters[0] == 0){
+        return ctx.replyWithMarkdown('Now why would you want to do that? 🤔');
+  } else if(!(parameters[1] == "VLDY" || parameters[1] == "EGEM")){
+        return ctx.replyWithMarkdown('⚠️ *** Incorrect asset type ***');
+  } else if((parameters[1] == "VLDY" || parameters[1] == "EGEM")){
     var token = await wallet.tokenbalance(payee);
     var gas = await wallet.gasBalance(payee);
     if(parameters[1] % 1 != 0 && parseFloat(parameters[0]) > 999){ parameters[0] = parameters[0] - parameters[0] % 1; }
@@ -326,7 +376,7 @@ tbot.command('/rain', async(ctx) => {
        || parseFloat((parameters[0])*(5+0.00275)) <= gas && parameters[1] == "EGEM"){
          var users = await wallet.tipRain("telegram", caller, payee, parameters[0], parameters[1]);
          if(users.length > 0){
-           return ctx.replyWithMarkdown(`@${caller} rained ${users} of ` + ' `' + `${parameters[0]} ${parameters[1]}` + ' `' +  '💥');
+           return ctx.replyWithMarkdown(`@${caller} rained @${users[0]}, @${users[1]}, @${users[2]}, @${users[3]} and @${users[4]} of ` + ' `' + `${parameters[0]} ${parameters[1]}` + ' `' +  '💥');
          } else if(users.length == 0){
            return ctx.replyWithMarkdown('⚠️ ***No users active to rain***');
          }

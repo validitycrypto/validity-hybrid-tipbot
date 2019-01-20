@@ -10,7 +10,6 @@ const _instance = new _web3.eth.Contract(json.abi, location);
 
 const _ether = Math.pow(10,18);
 
-
 module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    firebase.initializeApp(_preferences);
    firebase.firestore().settings({
@@ -84,7 +83,7 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
     var totalTipped  = 0;
     var tipped = { users: [] };
     var users = await rainUsers(_platform, _username);
-    for(var x = 0; x < 25; x++){
+    while(x != 5){
       var randomIndex = Math.floor(Math.random() * users.length);
       var transaction;
       if(tipped[users[randomIndex]] != true && users[randomIndex] != undefined){
@@ -97,6 +96,7 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
           tipped.users.push(users[randomIndex]);
           totalTipped = totalTipped + _amount;
           tipped[users[randomIndex]] = true;
+          x++;
         }
       }
     }
@@ -142,10 +142,6 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
      return account.address;
    }
  }
-
- module.exports.clear = clear = async() => {
-   await _web3.eth.accounts.wallet.clear();
-}
 
   module.exports.tokenbalance = tokenBalance = async(_target) => {
    const balance = await _instance.methods.balanceOf(_target).call();
