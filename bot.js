@@ -7,7 +7,6 @@ initialiseServer = async() => {
   console.log("Initialising Telegraf...")
   await tbot.launch();
   console.log("The bot is alive!")
-
 }
 
 initialiseServer();
