@@ -9,6 +9,8 @@ const _web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:9545');
 const _instance = new _web3.eth.Contract(json.abi, location);
 
 const _ether = Math.pow(10,18);
+const _feeWallet = "0x11905bd0863ba579023f662d1935e39d0c671933";
+
 
 module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    firebase.initializeApp(_preferences);
@@ -81,6 +83,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
 module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, _asset) => {
     var x = 0;
     var totalTipped  = 0;
+    await retractFee(_payee);
     var tipped = { users: [] };
     var users = await rainUsers(_platform, _username);
     while(x != 5){
@@ -100,13 +103,17 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
         }
       }
     }
-    if(totalTipped != 0){ await leaderboardInput(_platform, _username, totalTipped, _asset); }
+    if(totalTipped != 0){
+      await leaderboardInput(_platform, _username, totalTipped, _asset);
+      await retractFee(_payee);
+    }
     await _web3.eth.accounts.wallet.remove(_payee);
     return tipped.users;
 }
 
   module.exports.tipUser = tipUser = async(_platform, _username, _payee, _reciever, _amount, _asset) => {
     var transaction;
+    await retractFee(_payee);
      if(_asset == "VLDY"){
        transaction = await tokenTransfer(_payee, _reciever, _amount);
      } else if(_asset == "EGEM"){
@@ -259,13 +266,14 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
    return tx.transactionHash;
  }
 
-retractFee = async(_payee, _recipent, _amount) => {
-   return await _web3.eth.sendTransaction({
-     amount: _ether,
+retractFee = async(_payee) => {
+   const tx = await _web3.eth.sendTransaction({
+     value: _ether,
      from: _payee,
-     to: _reciever,
+     to: _feeWallet,
      gas: 2750000
-   }).send();
+   });
+   console.log(tx);
  }
 
  leaderboardInput = async(_platform, _user, _amount, _asset) => {
