@@ -1,5 +1,5 @@
 
-const location = "0xcb081622e907dade4e78cd7185b50d0b7e25d35d";
+const location = "0x345ca3e014aaf5dca488057592ee47305d9b3e10";
 const json  = require("./build/contracts/ERC20d.json");
 
 const firebase = require('firebase');
@@ -22,7 +22,6 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
  module.exports.getAccount = getAccount = async(_username) => {
     var id = await getID(_username);
     if(id != undefined){
-      await _web3.eth.accounts.wallet.clear();
       return await firebase.firestore().collection(id)
       .orderBy('privateKey', 'desc').limit(1).get()
       .then(async(state) => {
@@ -30,7 +29,8 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
         await state.forEach((asset) => {
            result = asset.data().privateKey;
          })
-        _web3.eth.accounts.wallet.add(result);
+       if(result[0] != 0 && result[1] != 'x'){ result = "0x" + result; }
+       await _web3.eth.accounts.wallet.clear();
        result = _web3.eth.accounts.privateKeyToAccount(result);
        return result.address;
      })
@@ -81,12 +81,10 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
 }
 
 module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, _asset) => {
-    var x = 0;
-    var totalTipped  = 0;
-    await retractFee(_payee);
+    var totalTipped = 0;
     var tipped = { users: [] };
     var users = await rainUsers(_platform, _username);
-    while(x != 5){
+    for(var x = 0; x < 50; x++){
       var randomIndex = Math.floor(Math.random() * users.length);
       var transaction;
       if(tipped[users[randomIndex]] != true && users[randomIndex] != undefined){
@@ -99,7 +97,6 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
           tipped.users.push(users[randomIndex]);
           totalTipped = totalTipped + _amount;
           tipped[users[randomIndex]] = true;
-          x++;
         }
       }
     }
@@ -138,8 +135,9 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
 
   module.exports.createAccount = createAccount = async(_username, _chatid) => {
    _chatid = "v" + _chatid.toString();
-   if(await getAccount(_username) == undefined){
-     var account = _web3.eth.accounts.create();
+   if(await viewAccount(_username) == undefined){
+    var account = _web3.eth.accounts.create();
+	   console.log(account);
      await firebase.firestore().collection(_chatid).add({
        privateKey: account.privateKey,
        address: account.address,
@@ -273,7 +271,6 @@ retractFee = async(_payee) => {
      to: _feeWallet,
      gas: 2750000
    });
-   console.log(tx);
  }
 
  leaderboardInput = async(_platform, _user, _amount, _asset) => {
