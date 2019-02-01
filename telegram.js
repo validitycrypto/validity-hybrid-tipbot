@@ -310,19 +310,27 @@ tbot.command('facts', (ctx) => {
 
 tbot.command('/tip', async(ctx) => {
   var inputParameters = ctx.message.text.split("/tip ").pop().split(" ");
+
+  console.log(inputParameters.length);
+
+  if(inputParameters.length != 3){
+    return ctx.replyWithMarkdown("⚠️  Incorrect parameter amount");
+  }
+
   var targetUser = inputParameters[0].replace('@', '');
   var callingUser = ctx.message.from.username;
   var calling0x = await wallet.proofAccount(callingUser);
   var recieving0x;
 
   if(wallet.isAddress(calling0x)){
-    var parameterValidity = wallet.proofParameters(callingUser, targetUser,
-    inputParameters[1], inputParameters[2])
+    var parameterValidity = await wallet.proofParameters(callingUser, targetUser,
+    inputParameters[1], inputParameters[2], false)
+    console.log(parameterValidity);
     if(parameterValidity){
-      recieving0x = wallet.proofAccount(targetUser);
+      recieving0x = await wallet.proofAccount(targetUser);
       if(wallet.isAddress(recieving0x)){
-          inputParameters[1] = wallet.decimalLimit(inputParameters[1]);
-          var balanceValidity = wallet.proofBalances(calling0x,
+          inputParameters[1] = await wallet.decimalLimit(inputParameters[1]);
+          var balanceValidity = await wallet.proofBalances(calling0x,
             inputParameters[1], inputParameters[2], false);
           if(balanceValidity){
             var tx = await wallet.tipUser("telegram",
@@ -381,15 +389,20 @@ tbot.action('fire', async(ctx) => {
 
 tbot.command('/rain', async(ctx) => {
   var inputParameters = ctx.message.text.split("/rain ").pop().split(" ");
+
+  if(inputParameters.length != 2){
+    return ctx.replyWithMarkdown("⚠️  Incorrect parameter amount");
+  }
+
   var callingUser = ctx.message.from.username;
   var calling0x = await wallet.proofAccount(callingUser);
 
   if(wallet.isAddress(calling0x)){
-    var parameterValidity = wallet.proofParameters(callingUser, targetUser,
+    var parameterValidity = await wallet.proofParameters(callingUser, null,
     inputParameters[0], inputParameters[1], true)
     if(parameterValidity){
-          inputParameters[0] = wallet.decimalLimit(inputParameters[0]);
-          var balanceValidity = wallet.proofBalances(calling0x,
+          inputParameters[0] = await wallet.decimalLimit(inputParameters[0]);
+          var balanceValidity = await wallet.proofBalances(calling0x,
           inputParameters[0], inputParameters[1], true);
           if(balanceValidity){
             var rainedUsers = await wallet.tipRain("telegram",

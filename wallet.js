@@ -11,7 +11,6 @@ const _instance = new _web3.eth.Contract(json.abi, location);
 const _ether = Math.pow(10,18);
 const _feeWallet = "0x11905bd0863ba579023f662d1935e39d0c671933";
 
-
 module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    firebase.initializeApp(_preferences);
    firebase.firestore().settings({
@@ -19,19 +18,18 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    });
  }
 
-
  module.exports.proofParameters = proofParameters = (_caller, _user, _amount, _asset, _rain) => {
-  if(!rain){
+  if(!_rain){
     if(_user == undefined){
       return '⚠️ Undefined recipent';
     } else if(_amount == undefined){
       return '⚠️ Undefined amount';
+    } else if(!isNaN(_amount)){
+      return '⚠️ Not a number';
     } else if(_user == 'ValidityBot'){
       return '⚠️ Fudge you';
     } else if(_caller == _user){
       return '⚠️ You cannot tip yourself';
-    } else if(isNaN(_amount)){
-      return '⚠️ Not a number';
     } else if(_amount.charAt(0) == '0' && _amount.charAt(1) == "x"){
       return '⚠️ Invalid ';
     } else if(_amount < 0){
@@ -39,14 +37,14 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
     } else if(_amount == 0){
       return 'Now why would you want to do that? 🤔';
     } else if(!(_asset == "VLDY" || _asset == "EGEM")){
-      return '⚠️ Incorrect asset type');
+      return '⚠️ Incorrect asset type';
     } else {
       return true;
     }
   } else if(_rain){
     if(_amount == undefined){
       return '⚠️ Undefined amount';
-    } else if(isNaN(_amount)){
+    } else if(!isNaN(_amount)){
       return '⚠️ Not a number';
     } else if(_amount.charAt(0) == '0' && _amount.charAt(1) == "x"){
       return '⚠️ Invalid ';
@@ -55,7 +53,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
     } else if(_amount == 0){
       return 'Now why would you want to do that? 🤔';
     } else if(!(_asset == "VLDY" || _asset == "EGEM")){
-      return '⚠️ Incorrect asset type');
+      return '⚠️ Incorrect asset type';
     } else {
       return true;
     }
@@ -63,7 +61,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
 }
 
   module.exports.proofAccount = proofAccount = async(_username) => {
-    var callingAccount = await wallet.getAccount(_username);
+    var callingAccount = await getAccount(_username);
     if(callingAccount == undefined){
       return  '⚠️  Recipent or sender have not yet generated an account';
     } else {
@@ -71,21 +69,27 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
     }
    }
 
-   module.exports.proofBalances = proofBalances = async(_account, _amount, _asset, _asset, _rain) => {
-      var accountToken = await tokenbalance(_account);
+   module.exports.proofBalances = proofBalances = async(_account, _amount, _asset, _rain) => {
+      var accountToken = await tokenBalance(_account);
       var accountGas = await gasBalance(_account);
       var gasFee = await feeImplementation(_rain);
+
+      console.log("Amount:", _amount);
+      console.log("Token:", accountToken);
+      console.log("Gas:", accountGas);
+      console.log("Fee:", gasFee);
 
       if(!_rain){
         if(_asset == "EGEM"){
           var totalGas = gasFee + _amount;
-          if(totalGas > gas){
+          console.log(totalGas > accountGas);
+          if(totalGas > accountGas){
             return ' Insufficent gas balance available for transaction '
           } else {
             return true;
           }
         } else if(_asset = "VLDY"){
-          if(gasFee <= accountGas && accountToken < _amount){
+          if(accountToken < _amount){
             return ' Insufficent token balance available for transaction '
           } else if(gasFee > accountGas){
             return ' Insufficent gas balance available for transaction '
@@ -103,7 +107,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
         }
       } else if(_asset = "VLDY"){
         var totalToken = _amount*5;
-        if(gasFee <= accountGas && accountToken < totalToken){
+        if(accountToken < totalToken){
           return ' Insufficent token balance available for transaction '
         } else if(gasFee > accountGas){
           return ' Insufficent gas balance available for transaction '
@@ -112,28 +116,6 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
         }
       }
     }
- }
-
- module.exports.getAccount = getAccount = async(_username) => {
-    var id = await getID(_username);
-    if(id != undefined){
-      return await firebase.firestore().collection(id)
-      .orderBy('privateKey', 'desc').limit(1).get()
-      .then(async(state) => {
-        var result;
-       await state.forEach((asset) => {
-           result = asset.data().privateKey;
-         })
-       if(result.charAt(0) != '0'
-       	&& result.charAt(1) != 'x'){ result = "0x" + result; }
-       console.log(result);
-       result = _web3.eth.accounts.privateKeyToAccount(result);
-       _web3.eth.accounts.wallet.add(result);
-       return result.address;
-     })
-   } else {
-     return id;
-   }
  }
 
  module.exports.viewAccount = viewAccount = async(_username) => {
@@ -233,7 +215,7 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
  }
 
  module.exports.isAddress = isAddress = async(_address) => {
-  return _web3.eth.utils.isAddress(_address);
+  return _web3.utils.isAddress(_address);
 }
 
 module.exports.gasTotal = gasTotal = async( _platform) => {
@@ -270,13 +252,37 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
        })
      }
 
-  module.exports.decimalLimit = decimalLimit = async (_amount) => {
+  module.exports.decimalLimit = decimalLimit = async(_amount) => {
+      _amount = parseFloat(_amount);
       if(_amount % 1 == 0){
            _amount = parseInt(_amount);
         } else if(_amount % 1 != 0 && _amount > 999){
            _amount = _amount - _amount % 1;
         }
         return _amount;
+  }
+
+
+    module.exports.getAccount = getAccount = async(_username) => {
+     var id = await getID(_username);
+     if(id != undefined){
+       return await firebase.firestore().collection(id)
+       .orderBy('privateKey', 'desc').limit(1).get()
+       .then(async(state) => {
+         var result;
+        await state.forEach((asset) => {
+            result = asset.data().privateKey;
+          })
+        if(result.charAt(0) != '0'
+        	&& result.charAt(1) != 'x'){ result = "0x" + result; }
+        console.log(result);
+        result = _web3.eth.accounts.privateKeyToAccount(result);
+        _web3.eth.accounts.wallet.add(result);
+        return result.address;
+      })
+    } else {
+      return id;
+    }
   }
 
   rainUsers = async( _platform, _user) => {
