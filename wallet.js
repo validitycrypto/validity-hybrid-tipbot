@@ -11,6 +11,7 @@ const _instance = new _web3.eth.Contract(json.abi, location);
 const _ether = Math.pow(10,18);
 const _feeWallet = "0x11905bd0863ba579023f662d1935e39d0c671933";
 
+
 module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    firebase.initializeApp(_preferences);
    firebase.firestore().settings({
@@ -24,13 +25,14 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
       return '⚠️ Undefined recipent';
     } else if(_amount == undefined){
       return '⚠️ Undefined amount';
-    } else if(!isNaN(_amount)){
+    } else if(isNaN(_amount)){
       return '⚠️ Not a number';
     } else if(_user == 'ValidityBot'){
       return '⚠️ Fudge you';
     } else if(_caller == _user){
       return '⚠️ You cannot tip yourself';
-    } else if(_amount.charAt(0) == '0' && _amount.charAt(1) == "x"){
+    } else if(_amount.toString().charAt(0) == '0'
+    && _amount.toString().charAt(1) == "x"){
       return '⚠️ Invalid ';
     } else if(_amount < 0){
       return 'Want me to detuct that from your balance? 👋';
@@ -44,9 +46,10 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
   } else if(_rain){
     if(_amount == undefined){
       return '⚠️ Undefined amount';
-    } else if(!isNaN(_amount)){
+    } else if(isNaN(_amount)){
       return '⚠️ Not a number';
-    } else if(_amount.charAt(0) == '0' && _amount.charAt(1) == "x"){
+    } else if(_amount.toString().charAt(0) == '0'
+    && _amount.toString().charAt(1) == "x"){
       return '⚠️ Invalid ';
     } else if(_amount < 0){
       return 'Want me to detuct that from your balance? 👋';
@@ -82,7 +85,6 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
       if(!_rain){
         if(_asset == "EGEM"){
           var totalGas = gasFee + _amount;
-          console.log(totalGas > accountGas);
           if(totalGas > accountGas){
             return ' Insufficent gas balance available for transaction '
           } else {

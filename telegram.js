@@ -238,8 +238,7 @@ tbot.command('withdraw', async(ctx) => {
     var token = await wallet.tokenbalance(caller);
     var gas = await wallet.gasBalance(caller);
 
-    console.log((parseFloat(parameters[1])+0.00275));
-    console.log(gas);
+
 
     if(parameters[1] % 1 != 0 && parseFloat(parameters[1]) > 999){
       parameters[1] = parameters[1] - parameters[1] % 1;
@@ -311,8 +310,6 @@ tbot.command('facts', (ctx) => {
 tbot.command('/tip', async(ctx) => {
   var inputParameters = ctx.message.text.split("/tip ").pop().split(" ");
 
-  console.log(inputParameters.length);
-
   if(inputParameters.length != 3){
     return ctx.replyWithMarkdown("⚠️  Incorrect parameter amount");
   }
@@ -323,16 +320,15 @@ tbot.command('/tip', async(ctx) => {
   var recieving0x;
 
   if(wallet.isAddress(calling0x)){
+    inputParameters[1] = await wallet.decimalLimit(inputParameters[1]);
     var parameterValidity = await wallet.proofParameters(callingUser, targetUser,
     inputParameters[1], inputParameters[2], false)
-    console.log(parameterValidity);
-    if(parameterValidity){
+    if(parameterValidity == true){
       recieving0x = await wallet.proofAccount(targetUser);
       if(wallet.isAddress(recieving0x)){
-          inputParameters[1] = await wallet.decimalLimit(inputParameters[1]);
           var balanceValidity = await wallet.proofBalances(calling0x,
             inputParameters[1], inputParameters[2], false);
-          if(balanceValidity){
+          if(balanceValidity == true){
             var tx = await wallet.tipUser("telegram",
             callingUser, calling0x, recieving0x,
             inputParameters[1], inputParameters[2]);
@@ -341,49 +337,55 @@ tbot.command('/tip', async(ctx) => {
               `${inputParameters[1]} ${inputParameters[2]}` + ' `' +  '🎉',
               Extra.markup(transactionModal(tx)))
           } else {
-            return balanceValidity;
+            return ctx.replyWithMarkdown(balanceValidity);
           }
       } else {
-        return recieving0x;
+        return ctx.replyWithMarkdown(recieving0x);
       }
     } else {
-      return parameterValidity;
+      return ctx.replyWithMarkdown(parameterValidity);
     }
   } else {
-    return calling0x;
+    return ctx.replyWithMarkdown(calling0x);
   }
 })
 
 tbot.action('fire', async(ctx) => {
   var caller = ctx.callbackQuery.from.username;
-  var parameters = JSON.stringify(ctx.callbackQuery.message.text).split(" ");
-  var reciever = await wallet.viewAccount(parameters[2].replace('@', ''));
-  var payee = await wallet.getAccount(caller);
-  if(payee == undefined){
-    return ctx.answerCbQuery("⚠️  Please generate an account firstly by using the command: /generate");
-  } else if(caller == parameters[2].replace('@', '')){
-    return ctx.answerCbQuery('⚠️ Hey dude, you cannot tip yourself');
-  } else if(parameters[6] == "VLDY" || parameters[6] == "EGEM"){
-    var token = await wallet.tokenbalance(payee);
-    var gas = await wallet.gasBalance(payee);
-    if((parseFloat((0.00275*2)+1) <= gas && parseFloat(parameters[5]) <= token && parameters[6] == "VLDY"
-       || parseFloat(parseFloat(parameters[5])+((0.00275*2)+1)) <= gas && parameters[6] == "EGEM")){
-        var tx = await wallet.tipUser("telegram", caller, payee, reciever, parameters[5],parameters[6]);
-        if(tx != undefined){
-          return ctx.replyWithMarkdown(`@${caller} tipped ${parameters[2]} of ` + ' `' + `${parameters[5]} ${parameters[6]}` + ' `' +  '🔥',
-          Extra.markup(transactionModal(tx)));
-        } else {
-          return ctx.answerCbQuery(`🚫 Failed to withdraw, please reformat parameters or contact the operator`);
-        }
-    } else if(gas >= parseFloat((0.00275*2)+1) && token < parseFloat(parameters[5]) && parameters[6] == "VLDY"){
-      return ctx.answerCbQuery("🚫  Insufficent token balance available for transaction");
-    } else if((parseFloat(parameters[5])+(0.00275*2)+1) > gas && parameters[6] == "EGEM"){
-      return ctx.answerCbQuery("🚫  Insufficent gas balance available for transaction");
-    } else if(token == 0 && gas >= parseFloat((0.00275*2)+1)){
-      return ctx.answerCbQuery("🚫  No tokens available for transaction");
-    } else if(gas < parseFloat((0.00275*2)+1)){
-      return ctx.answerCbQuery("🚫  No gas available for transaction");
+  var inputParameters = JSON.stringify(ctx.callbackQuery.message.text).split(" ");
+  var callingUser = ctx.message.from.username;
+  var targetUser = inputParameters[2].replace('@', '');
+  var calling0x = await wallet.proofAccount(callingUser);
+  var recieving0x;
+
+  if(wallet.isAddress(calling0x)){
+    inputParameters[5] = await wallet.decimalLimit(inputParameters[1]);
+    var parameterValidity = await wallet.proofParameters(callingUser, targetUser,
+    inputParameters[5], inputParameters[6], false)
+    if(parameterValidity == true){
+      recieving0x = await wallet.proofAccount(targetUser);
+      if(wallet.isAddress(recieving0x)){
+          var balanceValidity = await wallet.proofBalances(calling0x,
+            inputParameters[5], inputParameters[6], false);
+          if(balanceValidity == true){
+            var tx = await wallet.tipUser("telegram",
+            callingUser, calling0x, recieving0x,
+            inputParameters[5], inputParameters[6]);
+            return ctx.replyWithMarkdown(
+              `@${callingUser} tipped @${targetUser} of ` + ' `' +
+              `${inputParameters[5]} ${inputParameters[6]}` + ' `' +  '🎉',
+              Extra.markup(transactionModal(tx)))
+          } else {
+            return ctx.answerCbQuery(balanceValidity);
+          }
+      } else {
+        return ctx.answerCbQuery(recieving0x);
+      }
+    } else {
+      return ctx.answerCbQuery(parameterValidity);
     }
+  } else {
+    return ctx.answerCbQuery(calling0x);
   }
 });
 
@@ -398,13 +400,13 @@ tbot.command('/rain', async(ctx) => {
   var calling0x = await wallet.proofAccount(callingUser);
 
   if(wallet.isAddress(calling0x)){
+    inputParameters[0] = await wallet.decimalLimit(inputParameters[0]);
     var parameterValidity = await wallet.proofParameters(callingUser, null,
     inputParameters[0], inputParameters[1], true)
-    if(parameterValidity){
-          inputParameters[0] = await wallet.decimalLimit(inputParameters[0]);
+    if(parameterValidity == true){
           var balanceValidity = await wallet.proofBalances(calling0x,
           inputParameters[0], inputParameters[1], true);
-          if(balanceValidity){
+          if(balanceValidity == true){
             var rainedUsers = await wallet.tipRain("telegram",
             callingUser, calling0x, inputParameters[0],
             inputParameters[1]);
@@ -419,12 +421,12 @@ tbot.command('/rain', async(ctx) => {
               return ctx.replyWithMarkdown('⚠️ No users active to rain');
             }
           } else {
-            return balanceValidity;
+            return ctx.replyWithMarkdown(balanceValidity);
           }
     } else {
-      return parameterValidity;
+      return ctx.replyWithMarkdown(parameterValidity);
     }
   } else {
-    return calling0x;
+    return ctx.replyWithMarkdown(calling0x);
   }
 })
