@@ -11,7 +11,6 @@ const _instance = new _web3.eth.Contract(json.abi, location);
 const _ether = Math.pow(10,18);
 const _feeWallet = "0x11905bd0863ba579023f662d1935e39d0c671933";
 
-
 module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    firebase.initializeApp(_preferences);
    firebase.firestore().settings({
@@ -82,7 +81,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
       console.log("Gas:", accountGas);
       console.log("Fee:", gasFee);
 
-      if(!_rain){
+      if(_rain == false){
         if(_asset == "EGEM"){
           var totalGas = gasFee + _amount;
           if(totalGas > accountGas){
@@ -90,7 +89,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
           } else {
             return true;
           }
-        } else if(_asset = "VLDY"){
+        } else if(_asset == "VLDY"){
           if(accountToken < _amount){
             return ' Insufficent token balance available for transaction '
           } else if(gasFee > accountGas){
@@ -99,7 +98,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
             return true;
           }
       }
-    } else if(_rain){
+    } else if(_rain == true){
       if(_asset == "EGEM"){
         var totalGas = gasFee + (_amount*5);
         if(totalGas > accountGas){
@@ -107,9 +106,27 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
         } else {
           return true;
         }
-      } else if(_asset = "VLDY"){
+      } else if(_asset == "VLDY"){
         var totalToken = _amount*5;
         if(accountToken < totalToken){
+          return ' Insufficent token balance available for transaction '
+        } else if(gasFee > accountGas){
+          return ' Insufficent gas balance available for transaction '
+        } else {
+          return true;
+        }
+      }
+    } else if(_rain === "withdraw"){
+      if(_asset == "EGEM"){
+        var totalGas = gasFee + _amount;
+        console.log(totalGas);
+        if(totalGas > accountGas){
+          return ' Insufficent gas balance available for transaction '
+        } else {
+          return true;
+        }
+      } else if(_asset == "VLDY"){
+        if(accountToken < _amount){
           return ' Insufficent token balance available for transaction '
         } else if(gasFee > accountGas){
           return ' Insufficent gas balance available for transaction '
@@ -401,10 +418,12 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
     });
   }
 
-  feeImplementation = async(_bool ) => {
-    if(!_bool){
+  feeImplementation = async(_bool) => {
+    if(_bool == false){
       return ((0.00275*2)+1);
-    } else if(_bool){
+    } else if(_bool == true){
       return ((0.00275*6)+1);
+    } else if(_bool === "withdraw") {
+      return (0.00275);
     }
   }

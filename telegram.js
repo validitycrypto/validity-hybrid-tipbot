@@ -210,63 +210,45 @@ tbot.action('deposit', async(ctx) => {
 })
 
 tbot.command('withdraw', async(ctx) => {
-  var caller = await wallet.getAccount(ctx.message.from.username);
-  var parameters = ctx.message.text.split("/withdraw ").pop().split(" ");
+  var callingUser = ctx.message.from.username;
+  var calling0x = await wallet.proofAccount(callingUser);
+  var inputParameters = ctx.message.text.split("/withdraw ").pop().split(" ");
+  var target0x = inputParameters[0];
 
-   if((parameters[0] == undefined || parameters[1] == undefined
-      || parameters[2] == undefined)){
-     return ctx.replyWithMarkdown('⚠️ *** Missing optimal parameters ***');
-   }
-
-  if(caller == undefined){
-    return ctx.replyWithMarkdown('⚠️ ***Please generate an account first by using the command:*** `/generate`');
-  } else if(parameters[0].length != 42){
-    return ctx.replyWithMarkdown('⚠️ ***Incorrect EtherGem address***');
-  } else if(parameters[2] == undefined){
-    return ctx.replyWithMarkdown('⚠️ ***Incorrect asset type***');
-  } else if(isNaN(parameters[1])){
-      return ctx.replyWithMarkdown('⚠️ *** Not a number ***');
-  } else if(parameters[1].charAt(0) == '0' && parameters[1].charAt(1) == "x"){
-        return ctx.replyWithMarkdown('⚠️ *** HEY, YOU STOP ! ***');
-  } else if(parameters[1] < 0){
-      return ctx.replyWithMarkdown('Want me to detuct that from your balance? 👋');
-  } else if(parameters[1] == 0){
-      return ctx.replyWithMarkdown('Now why would you want to do that? 🤔');
-  } else if(!(parameters[2] == "VLDY" || parameters[2] == "EGEM")){
-      return ctx.replyWithMarkdown('⚠️ *** Incorrect asset type ***');
-  } else if((parameters[2] == "VLDY" || parameters[2] == "EGEM")){
-    var token = await wallet.tokenbalance(caller);
-    var gas = await wallet.gasBalance(caller);
-
-
-
-    if(parameters[1] % 1 != 0 && parseFloat(parameters[1]) > 999){
-      parameters[1] = parameters[1] - parameters[1] % 1;
-    } else if(parameters[1] % 1 == 0){
-      parameters[1] = parseFloat(parameters[1]);
-    }
-
-    if((parseFloat(0.00275) <= gas && parseFloat(parameters[1]) <= token && parameters[2] == "VLDY"
-      || parseFloat(parseFloat(parameters[1])+0.00275) <= gas && parameters[2] == "EGEM")){
-        var tx = await wallet.withdrawFunds(caller, parameters[0], parameters[1], parameters[2]);
-        if(tx != undefined){
-            return ctx.replyWithMarkdown(`@${ctx.message.from.username} withdrew to ` + ' `' + `${parameters[0]}` + '`' +  ' of ' + ' `' + `${parameters[1]} ${parameters[2]}` + ' `' +  ' 📤',
-            Extra.markup(withdrawModal(tx)));
-        } else {
-            return ctx.replyWithMarkdown(`🚫 ***Failed to withdraw, please reformat parameters or contact the operator***`);
-        }
-  } else if(gas >= (parseFloat(parameters[1])+0.00275) && token < parseFloat(parameters[1]) && parameters[2] == "VLDY"){
-    return ctx.replyWithMarkdown('🚫  ***Insufficent token balance available for transaction***');
-  } else if(gas < (parseFloat(parameters[1])+0.00275) && parameters[2] == "EGEM"){
-    return ctx.replyWithMarkdown('🚫  ***Insufficent gas balance available for transaction***');
-  } else if(token == 0 && gas >= (parseFloat(parameters[1])+0.00275)){
-    return ctx.replyWithMarkdown('🚫  ***No tokens available for transaction***');
-  } else if(gas == 0){
-    return ctx.replyWithMarkdown('🚫  ***No gas available for transaction***');
-  } else {
-    return ctx.replyWithMarkdown('🚫  ***Incorrect command format***');
+  if(inputParameters.length != 3){
+    return ctx.replyWithMarkdown("⚠️  Incorrect parameter amount");
+  } else if(!wallet.isAddress(target0x)){
+    return ctx.replyWithMarkdown("⚠️  Incorrect EtherGem address");
   }
-}
+
+  if(wallet.isAddress(calling0x)){
+    inputParameters[1] = await wallet.decimalLimit(inputParameters[1]);
+    var parameterValidity = await wallet.proofParameters(callingUser, null,
+    inputParameters[1], inputParameters[2], true)
+    if(parameterValidity == true){
+        var balanceValidity = await wallet.proofBalances(calling0x,
+        inputParameters[1], inputParameters[2], "withdraw");
+        if(balanceValidity == true){
+          var tx = await wallet.withdrawFunds(calling0x,
+          inputParameters[0], inputParameters[1],
+          inputParameters[2]);
+          if(tx != undefined){
+            return ctx.replyWithMarkdown(
+              `@${ctx.message.from.username} withdrew to ` + ' `'
+              + `${inputParameters[0]}` + '`' +  ' of ' + ' `'
+              + `${inputParameters[1]} ${inputParameters[2]}`
+              + ' `' +  ' 📤',
+              Extra.markup(withdrawModal(tx)));
+          }
+        } else {
+          return ctx.replyWithMarkdown(balanceValidity);
+        }
+    } else {
+      return ctx.replyWithMarkdown(parameterValidity);
+    }
+  } else {
+    return ctx.replyWithMarkdown(calling0x);
+  }
 })
 
 tbot.command('generate', async(ctx) => {
