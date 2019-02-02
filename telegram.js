@@ -71,8 +71,10 @@ const commandList =
    +'\n***Generate:*** `/generate`'
    +'\n***Deposit:*** `/deposit`'
    +'\n***Balance:*** `/balance`'
+   +'\n***Stats:*** `/stats`'
    +'\n***Menu:*** `/start`'
    +'\n***Help:*** `/help`';
+
 
 const helpInfo =
     '⭐️ ***Help*** ⭐️'
@@ -196,6 +198,22 @@ tbot.command('help', async(ctx) => {
 
 tbot.action('help', async(ctx) => {
   return ctx.replyWithMarkdown(helpInfo);
+})
+
+tbot.command('stats', async(ctx) => {
+  var token = await wallet.tokenTotal("telegram");
+  var gas = await wallet.gasTotal("telegram");
+  return ctx.replyWithMarkdown(`@${ctx.message.from.username}'s stats:'`
+    `\n💎 ` + '`' + `${gas[ctx.message.from.username]} EGEM `  + '`'
+    + `\n🌀 `  + '`' + `${token[ctx.message.from.username]} VLDY`  + '`');
+})
+
+tbot.action('stats', async(ctx) => {
+  var token = await wallet.tokenTotal("telegram");
+  var gas = await wallet.gasTotal("telegram");
+  return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username}'s stats:'`
+    `\n💎 ` + '`' + `${gas[ctx.callbackQuery.from.username]} EGEM `  + '`'
+    + `\n🌀 `  + '`' + `${token[ctx.callbackQuery.from.username]} VLDY`  + '`');
 })
 
 tbot.command('deposit', async(ctx) => {

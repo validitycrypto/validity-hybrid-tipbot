@@ -1,6 +1,46 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
+
 const wallet = require('./wallet.js');
+
+const helpInfo =
+    '\n`Command parameters`'
+    +'\n`<user>` - An active telegram username, eg: @xGozzy'
+    +'\n`<amount>` - The amount one wishes to tip, eg: `100`'
+    +'\n`<asset>` - The asset one wishes to tip, eg: `EGEM` or `VLDY`'
+    +'\n`<address>` - The address one wishes to withdraw to, eg:`0xA5d505F9EfA7aFC13C82C1e87E12F0562A5ed78f`'
+    +'\n\n`Command format`'
+    +'\nIn order to execute transactional based operations corrrectly, one must follow the format of the specified command.'
+    +' If we look at our tip function we can see that it requires 3 parameters, an amount, a user and the chosen asset:'
+    +'\n`/tip <user> <amount> <asset>`'
+    +'\nIf we were to actually fill in the parameters it would look like so:'
+    +'\n`/tip @xGozzy 1 EGEM`'
+    +'\n\nIf one was to use the rain command which format is declared as:'
+    +'\n`/rain <amount> <asset>`'
+    +'\nIt would be called as so:'
+    +'\n`/rain 100 VLDY`'
+    +'\n\nThen finally the withdraw command:'
+    +'\n`/withdraw <address> <amount> <asset>`'
+    +'\nWould look like:'
+    +'\n`/withdraw 0xA5d505F9EfA7aFC13C82C1e87E12F0562A5ed78f 1 EGEM`'
+
+const aboutInfo =
+    '\n`Fees and gas dependency`'
+    +'\nIn order to send transactions, one must have a EGEM balance to pay compensation for the transaction fee.'
+    +' This means one cannot tip VLDY without an active EGEM balance.'
+    +'\n\nAs this bot is not funded, there will be a fee implementation of ***1 EGEM per tip*** in order to allow it be'
+    +' hosted on a virtual machine for 24/7 uptime and swift responses. A % of the fees will be split among the core team'
+    +' and a % will be isolated for community events.'
+    +'\n\n`Security disclaimer`'
+    +'\nThis bot is ***centralised*** and is not ultimately secure for storing large amount of assets, please use an associated'
+    +' EtherGem wallet to store your funds securely: \nhttps://myegemwallet.com/'
+    +'\n\n`Users must take it into their own responsibilities to withdraw their'
+    +' own balances frequently. The Validity team is not responsibile for any losses.`'
+    +'\n\n`Source Code`'
+    +'\nThis bot was developed by @xGozzy on behalf of @ValidityCrypto, to incentivize community events and activity but'
+    +' also to allow seamless tips between the team and community members. It will be updated regularly to ensure maximum'
+    +' efficency and security. View the source code at:'
+    +' https://github.com/validitycrypto/validity-hybrid-tipbot';
 
 client.on('ready', async() => {
   await wallet.initialiseDatabase();
@@ -11,44 +51,229 @@ client.on('ready', async() => {
 commandGenerate = async(_msg) => {
   var address = await wallet.createAccount(_msg.author.username, _msg.author.id);
   if(address == undefined){
-    _msg.reply(` you have already generated an account 🚫`);
+    _msg.channel.send(`🚫 <@!${_msg.author.id}>` + ` you have already generated an account`);
   } else if(address != undefined) {
-    _msg.reply(` your account address is: ` + '`' + `${address}` + '`');
+    _msg.channel.send(`<@!${_msg.author.id}>` + ` your account address is: ` + '`' + `${address}` + '`');
   }
 }
 
 commandBalance = async(_msg) => {
   var account = await wallet.viewAccount(_msg.author.username);
   if(account == undefined){
-    return _msg.reply(' please generate an account first by using the command: `/generate` ⚠️');
+    return _msg.channel.send(`⚠️ <@!${_msg.author.id}>` + ' please generate an account first by using the command: `/generate` ');
   } else {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
-    return _msg.reply(' your funds are: ' + '<:ethergem:490221755756183554>' + '`' + ` ${gas}`
+    return _msg.channel.send(`<@!${_msg.author.id}>` + ' your funds are: ' + '<:ethergem:490221755756183554>' + '`' + ` ${gas}`
     + ` EGEM ` + '`' + ' <:validity:490221401232506882> ' + '`' + ` ${token}` + ` VLDY` + '`');
   }
 }
 
+commandDeposit = async(_msg) => {
+  var account = await wallet.viewAccount(_msg.author.username);
+  if(account == undefined){
+    return _msg.channel.send(`⚠️ <@!${_msg.author.id}>` + ' please generate an account first by using the command: `/generate`');
+  } else {
+    var token = await wallet.tokenbalance(account);
+    var gas = await wallet.gasBalance(account);
+    return _msg.channel.send(`<@!${_msg.author.id}> your depositing address is: ` + '`' + `${account}` + '`');
+  }
+}
 
 commandLeaderboard = async(_msg) => {
   var token = await wallet.tokenTotal("discord");
   var gas = await wallet.gasTotal("discord");
-  return _msg.reply(
-  '\n<:ethergem:490221755756183554> **EtherGem** <:ethergem:490221755756183554>'
-  +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + ' EGEM`'
-  +'\n***2:*** ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + ' EGEM`'
-  +'\n***3:*** ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + ' EGEM`'
-  +'\n***4:*** ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + ' EGEM`'
-  +'\n***5:*** ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + ' EGEM`'
+  const embed = new Discord.RichEmbed()
+      .setColor(Math.floor(Math.random() * 999999))
+      .setDescription(
+        '\n<:ethergem:490221755756183554> **EtherGem** <:ethergem:490221755756183554>'
+        +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + ' EGEM`'
+        +'\n***2:***  ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + ' EGEM`'
+        +'\n***3:***  ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + ' EGEM`'
+        +'\n***4:***  ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + ' EGEM`'
+        +'\n***5:***  ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + ' EGEM`'
 
-  +'\n\n<:validity:490221401232506882> **Validity** <:validity:490221401232506882>'
-  +'\n\n***1:*** ' + `@${token[0]}` + ' ***-*** ' + '`' + `${token[token[0]]}` + ' VLDY`'
-  +'\n***2:*** ' + `@${token[1]}` + ' ***-*** ' + '`' + `${token[token[1]]}` + ' VLDY`'
-  +'\n***3:*** ' + `@${token[2]}` + ' ***-*** ' + '`' + `${token[token[2]]}` + ' VLDY`'
-  +'\n***4:*** ' + `@${token[3]}` + ' ***-*** ' + '`' + `${token[token[3]]}` + ' VLDY`'
-  +'\n***5:*** ' + `@${token[4]}` + ' ***-*** ' + '`' + `${token[token[4]]}` + ' VLDY`');
+        +'\n\n<:validity:490221401232506882> **Validity** <:validity:490221401232506882>'
+        +'\n\n***1:***  ' + `@${token[0]}` + ' ***-*** ' + '`' + `${token[token[0]]}` + ' VLDY`'
+        +'\n***2:***  ' + `@${token[1]}` + ' ***-*** ' + '`' + `${token[token[1]]}` + ' VLDY`'
+        +'\n***3:***  ' + `@${token[2]}` + ' ***-*** ' + '`' + `${token[token[2]]}` + ' VLDY`'
+        +'\n***4:***  ' + `@${token[3]}` + ' ***-*** ' + '`' + `${token[token[3]]}` + ' VLDY`'
+        +'\n***5:***  ' + `@${token[4]}` + ' ***-*** ' + '`' + `${token[token[4]]}` + ' VLDY`'
+      )
+      .setAuthor("🏆 Leaderboard")
+  return _msg.channel.send({ embed });
 }
 
+commandTip = async(_msg) => {
+    var inputParameters = _msg.content.split("/tip ").pop().split(" ");
+
+    if(inputParameters.length != 3){
+      return _msg.channel.send("⚠️ Incorrect parameter amount ");
+    }
+
+    var targetUser = await wallet.getUsername(inputParameters[0].toString().replace(/[@<>]/g,''));
+    var callingUser = _msg.author.username;
+    var calling0x = await wallet.proofAccount(callingUser);
+    var recieving0x;
+
+    if(wallet.isAddress(calling0x)){
+      inputParameters[1] = await wallet.decimalLimit(inputParameters[1]);
+      var parameterValidity = await wallet.proofParameters(callingUser, targetUser,
+      inputParameters[1], inputParameters[2], false)
+      if(parameterValidity == true){
+        recieving0x = await wallet.proofAccount(targetUser);
+        if(wallet.isAddress(recieving0x)){
+            var balanceValidity = await wallet.proofBalances(calling0x,
+              inputParameters[1], inputParameters[2], false);
+            if(balanceValidity == true){
+              var tx = await wallet.tipUser("discord",
+              callingUser, calling0x, recieving0x,
+              inputParameters[1], inputParameters[2]);
+              return _msg.channel.send(
+                `<@!${_msg.author.id}> tipped `+
+                `${inputParameters[0]} of ` + ' `'
+                + `${inputParameters[1]} ${inputParameters[2]}` + ' `' +  ' 🎉');
+            } else {
+              return _msg.channel.send(balanceValidity);
+            }
+        } else {
+          return _msg.channel.send(recieving0x);
+        }
+      } else {
+        return _msg.channel.send(parameterValidity);
+      }
+    } else {
+      return _msg.channel.send(calling0x);
+    }
+}
+
+commandRain = async(_msg) => {
+  var inputParameters = _msg.content.split("/rain ").pop().split(" ");
+
+  if(inputParameters.length != 2){
+    return _msg.channel.send("⚠️ Incorrect parameter amount ");
+  }
+
+  var callingUser = _msg.author.username;
+  var calling0x = await wallet.proofAccount(callingUser);
+
+    if(wallet.isAddress(calling0x)){
+      inputParameters[0] = await wallet.decimalLimit(inputParameters[0]);
+      var parameterValidity = await wallet.proofParameters(callingUser, null,
+      inputParameters[0], inputParameters[1], true)
+      if(parameterValidity == true){
+            var balanceValidity = await wallet.proofBalances(calling0x,
+            inputParameters[0], inputParameters[1], true);
+            if(balanceValidity == true){
+              var rainedUsers = await wallet.tipRain("discord",
+              callingUser, calling0x, inputParameters[0],
+              inputParameters[1]);
+              if(rainedUsers.length > 0){
+                return _msg.channel.send(
+                  `<@!${_msg.author.id}> rained `
+                  +`<@!${(await wallet.getID(rainedUsers[0])).replace('v','')}>, @${rainedUsers[1]}, `
+                  +`@${rainedUsers[2]}, @${rainedUsers[3]} and `
+                  +`@${rainedUsers[4]} of ` + ' `' + `${inputParameters[0]} `
+                  +`${inputParameters[1]}` + ' `' +  '💥');
+              } else {
+                return _msg.channel.send('⚠️ No users active to rain');
+              }
+            } else {
+              return _msg.channel.send(balanceValidity);
+            }
+      } else {
+        return _msg.channel.send(parameterValidity);
+      }
+    } else {
+      return _msg.channel.send(calling0x);
+    }
+}
+
+commandWithdraw = async(_msg) => {
+  var calling0x = await wallet.proofAccount(_msg.author.username);
+  var inputParameters = _msg.content.split("/withdraw ").pop().split(" ");
+  var target0x = inputParameters[0];
+
+  if(inputParameters.length != 3){
+    return _msg.channel.send("⚠️  Incorrect parameter amount");
+  } else if(!wallet.isAddress(target0x)){
+    return _msg.channel.send("⚠️  Incorrect EtherGem address");
+  }
+
+  if(wallet.isAddress(calling0x)){
+    inputParameters[1] = await wallet.decimalLimit(inputParameters[1]);
+    var parameterValidity = await wallet.proofParameters(_msg.author.username, null,
+    inputParameters[1], inputParameters[2], true)
+    if(parameterValidity == true){
+        var balanceValidity = await wallet.proofBalances(calling0x,
+        inputParameters[1], inputParameters[2], "withdraw");
+        if(balanceValidity == true){
+          var tx = await wallet.withdrawFunds(calling0x,
+          inputParameters[0], inputParameters[1],
+          inputParameters[2]);
+          if(tx != undefined){
+            return _msg.channel.send(
+              `<@!${_msg.author.id}> withdrew to ` + ' `'
+              + `${inputParameters[0]}` + '`' +  ' of ' + ' `'
+              + `${inputParameters[1]} ${inputParameters[2]}`
+              + ' `' +  ' 📤')
+          }
+        } else {
+          return _msg.channel.send(balanceValidity);
+        }
+    } else {
+      return _msg.channel.send(parameterValidity);
+    }
+  } else {
+    return _msg.channel.send(calling0x);
+  }
+}
+
+commandStats = async(_msg) => {
+  var token = await wallet.tokenTotal("discord");
+  var gas = await wallet.gasTotal("discord");
+  const embed = new Discord.RichEmbed()
+      .setColor(Math.floor(Math.random() * 999999))
+      .setDescription(
+      `<:ethergem:490221755756183554> ` + '`' + `${gas[_msg.author.username]} EGEM `  + '`'
+      + `\n <:validity:490221401232506882> `  + '`' + `${token[_msg.author.username]} VLDY`  + '`')
+      .setAuthor(`⭐ ${_msg.author.username}'s stats`, _msg.author.displayAvatarURL)
+  return _msg.channel.send({ embed });
+}
+
+commandOveriew = async(_msg) => {
+  const embed = new Discord.RichEmbed()
+      .setColor(Math.floor(Math.random() * 999999))
+      .setDescription(
+        '\n***Withdraw:*** `/withdraw <address> <amount> <asset>`'
+        +'\n***Tip:*** `/tip <user> <amount> <asset>`'
+        +'\n***Rain***: `/rain <amount> <asset>`'
+        +'\n***Leaderboard:*** `/leaderboard`'
+        +'\n***Generate:*** `/generate`'
+        +'\n***Deposit:*** `/deposit`'
+        +'\n***Balance:*** `/balance`'
+        +'\n***Stats:*** `/stats`'
+        +'\n***About:*** `/about`'
+        +'\n***Help:*** `/help`')
+      .setAuthor("🛠️ Commands")
+  return _msg.channel.send({ embed });
+}
+
+commandHelp= async(_msg) => {
+  const embed = new Discord.RichEmbed()
+      .setColor(Math.floor(Math.random() * 999999))
+      .setDescription(helpInfo)
+      .setAuthor("⭐️ Help")
+  return _msg.channel.send({ embed });
+}
+
+commandAbout= async(_msg) => {
+  const embed = new Discord.RichEmbed()
+      .setColor(Math.floor(Math.random() * 999999))
+      .setDescription(aboutInfo)
+      .setAuthor("🔍 About")
+  return _msg.channel.send({ embed });
+}
 
 client.on('message', async(msg) => {
   if(msg.content === '/generate') {
@@ -57,6 +282,24 @@ client.on('message', async(msg) => {
     return commandBalance(msg);
   } else if(msg.content === '/leaderboard') {
     return commandLeaderboard(msg);
+  } else if(msg.content === '/deposit') {
+    return commandDeposit(msg);
+  } else if(msg.content.split(" ")[0] === '/tip') {
+    return commandTip(msg);
+  } else if(msg.content.split(" ")[0] === '/rain') {
+    return commandRain(msg);
+  } else if(msg.content.split(" ")[0] === '/withdraw') {
+    return commandWithdraw(msg);
+  }  else if(msg.content === '/stats') {
+    return commandStats(msg);
+  } else if(msg.content === '/help') {
+    return commandHelp(msg);
+  } else if(msg.content === '/commands') {
+    return commandOveriew(msg);
+  } else if(msg.content === '/about') {
+    return commandAbout(msg);
+  } else if(msg.content === '/about') {
+    return commandAbout(msg);
   }
 });
 

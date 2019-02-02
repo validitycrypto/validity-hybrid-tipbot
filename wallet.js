@@ -155,6 +155,19 @@ module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    }
  }
 
+ module.exports.getUsername = getUsername = async(_chatid) => {
+   _chatid = "v" + _chatid.toString();
+  return await firebase.firestore().collection(_chatid)
+  .orderBy('user', 'desc').limit(1).get()
+  .then(async(state) => {
+    var result;
+     await state.forEach((asset) => {
+        result = asset.data().user;
+     })
+   return result;
+ })
+}
+
 module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, _asset) => {
     var totalTipped = 0;
     var tipped = { users: [] };
@@ -400,7 +413,7 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
        })
      }
 
- getID = getID = async(_username) => {
+ module.exports.getID = getID = async(_username) => {
      return await firebase.firestore().collection(_username)
      .orderBy('id', 'desc').limit(1).get()
      .then(async(state) => {
