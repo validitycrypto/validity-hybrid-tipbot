@@ -5,11 +5,12 @@ const json  = require("./build/contracts/ERC20d.json");
 const firebase = require('firebase');
 const Web3 = require('web3');
 
-const _web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:9545');
+const _web3 = new Web3(Web3.givenProvider || 'http://188.166.63.163:9545');
 const _instance = new _web3.eth.Contract(json.abi, location);
 
 const _ether = Math.pow(10,18);
 const _feeWallet = "0x11905bd0863ba579023f662d1935e39d0c671933";
+
 
 module.exports.initialiseDatabase  = initialiseDatabase = async() => {
    firebase.initializeApp(_preferences);
@@ -224,7 +225,9 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
  }
 
   module.exports.tokenbalance = tokenBalance = async(_target) => {
+    console.log(_target);
    const balance = await _instance.methods.balanceOf(_target).call();
+   console.log(balance);
    return parseFloat(balance/_ether).toFixed(2);
  }
 

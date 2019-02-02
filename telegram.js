@@ -179,7 +179,6 @@ tbot.command('balance', async(ctx) => {
 })
 
 tbot.action('balance' , async(ctx) => {
-  var response;
   var account = await wallet.viewAccount(ctx.callbackQuery.from.username);
   if(account == undefined){
     return ctx.replyWithMarkdown('⚠️ ***Please generate an account first by using the command:*** `/generate`');
