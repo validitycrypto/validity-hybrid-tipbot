@@ -11,8 +11,7 @@ const _instance = new _web3.eth.Contract(json.abi, location);
 const _ether = Math.pow(10,18);
 const _feeWallet = "0x11905bd0863ba579023f662d1935e39d0c671933";
 
-
-module.exports.initialiseDatabase  = initialiseDatabase = async() => {
+module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) => {
    firebase.initializeApp(_preferences);
    firebase.firestore().settings({
      timestampsInSnapshots: true

@@ -24,7 +24,7 @@ const menuModal = Markup.inlineKeyboard([
     Markup.urlButton('🌐 Website', 'https://validity.ae') ]
 ])
 
-var randomAdmin = [
+const randomAdmin = [
   'I have a marketing proposal for your ICO admin 🗣',
   'Blah, blah, blah, blah, BLAH!',
   'This is my turf dude 👊',
@@ -37,7 +37,7 @@ var randomAdmin = [
   'kek'
 ];
 
-var randomPraise = [
+const randomPraise = [
   'License and registration please 🔦 ',
   'But where is my tip?',
   'YEEEEEEAAAAHHHHH',
@@ -50,7 +50,7 @@ var randomPraise = [
   'pl0x'
 ];
 
-var randomFacts = [
+const randomFacts = [
   'PoS (Proof of Stake) can be highly centralised, with the ability of a master public key which "solves" the nothing at stake condumrum, but at the cost of centralisation',
   `In the year 2017, 81% of all ICO's were amoral or inaffective, which resulted up to €300,0000,000 lost`,
   'A high TPS (Transactions per second) throughput, unfortunately means centralisation is immient',
@@ -114,8 +114,9 @@ const helpInfo =
     +' efficency and security. View the source code at:'
     +' https://github.com/validitycrypto/validity-hybrid-tipbot';
 
-
-module.exports.tbot = tbot = new telegraf(_tg)
+module.exports.initialiseTelegram = initialiseTelegram = async(_token) => {
+  var tbot = await new telegraf(_token)
+  await tbot.launch();
 
 tbot.hears('hi', (ctx) => ctx.reply('Hey there'))
 
@@ -429,3 +430,5 @@ tbot.command('/rain', async(ctx) => {
     return ctx.replyWithMarkdown(calling0x);
   }
 })
+
+}

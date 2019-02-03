@@ -3,6 +3,8 @@ const client = new Discord.Client();
 
 const wallet = require('./wallet.js');
 
+const prefixColors = [ 851823, 7277823, 15273215, 65535, 16711808, 16753920, 16777215 , 16776960,  255 ]
+
 const helpInfo =
     '\n`Command parameters`'
     +'\n`<user>` - An active telegram username, eg: @xGozzy'
@@ -42,11 +44,13 @@ const aboutInfo =
     +' efficency and security. View the source code at:'
     +' https://github.com/validitycrypto/validity-hybrid-tipbot';
 
+module.exports.initialiseDiscord = initialiseDiscord = async(_token) => {
+  await client.login(_token);
+
 client.on('ready', async() => {
   await wallet.initialiseDatabase();
   console.log(`Logged in as ${client.user.tag}!`);
 });
-
 
 commandGenerate = async(_msg) => {
   var address = await wallet.createAccount(_msg.author.username, _msg.author.id);
@@ -84,7 +88,7 @@ commandLeaderboard = async(_msg) => {
   var token = await wallet.tokenTotal("discord");
   var gas = await wallet.gasTotal("discord");
   const embed = new Discord.RichEmbed()
-      .setColor(Math.floor(Math.random() * 999999))
+      .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
       .setDescription(
         '\n<:ethergem:490221755756183554> **EtherGem** <:ethergem:490221755756183554>'
         +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + ' EGEM`'
@@ -233,7 +237,7 @@ commandStats = async(_msg) => {
   var token = await wallet.tokenTotal("discord");
   var gas = await wallet.gasTotal("discord");
   const embed = new Discord.RichEmbed()
-      .setColor(Math.floor(Math.random() * 999999))
+      .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
       .setDescription(
       `<:ethergem:490221755756183554> ` + '`' + `${gas[_msg.author.username]} EGEM `  + '`'
       + `\n <:validity:490221401232506882> `  + '`' + `${token[_msg.author.username]} VLDY`  + '`')
@@ -243,7 +247,7 @@ commandStats = async(_msg) => {
 
 commandOveriew = async(_msg) => {
   const embed = new Discord.RichEmbed()
-      .setColor(Math.floor(Math.random() * 999999))
+      .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
       .setDescription(
         '\n***Withdraw:*** `/withdraw <address> <amount> <asset>`'
         +'\n***Tip:*** `/tip <user> <amount> <asset>`'
@@ -261,7 +265,7 @@ commandOveriew = async(_msg) => {
 
 commandHelp= async(_msg) => {
   const embed = new Discord.RichEmbed()
-      .setColor(Math.floor(Math.random() * 999999))
+      .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
       .setDescription(helpInfo)
       .setAuthor("⭐️ Help")
   return _msg.channel.send({ embed });
@@ -269,7 +273,7 @@ commandHelp= async(_msg) => {
 
 commandAbout= async(_msg) => {
   const embed = new Discord.RichEmbed()
-      .setColor(Math.floor(Math.random() * 999999))
+      .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
       .setDescription(aboutInfo)
       .setAuthor("🔍 About")
   return _msg.channel.send({ embed });
@@ -303,5 +307,4 @@ client.on('message', async(msg) => {
   }
 });
 
-
-client.login('');
+}
