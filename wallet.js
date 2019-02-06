@@ -1,15 +1,18 @@
 
-const location = "0x345ca3e014aaf5dca488057592ee47305d9b3e10";
-const json  = require("./build/contracts/ERC20d.json");
+const tokenLocation = "0xDB1E82144bFde4e41E7186Bc579D3841A0DaA51A";
+const multiLocation = "0x7794df0d811d3ed220646bae2d40ea8e1357d71b";
+const jsonMulti = require("./build/contracts/MultiTX.json");
+const jsonToken = require("./build/contracts/ERC20d.json");
 
 const firebase = require('firebase');
 const Web3 = require('web3');
 
-const _web3 = new Web3(Web3.givenProvider || 'http://188.166.63.163:9545');
-const _instance = new _web3.eth.Contract(json.abi, location);
+const _web3 = new Web3(Web3.givenProvider || 'https://kovan.infura.io/v3/cbb9289c56b44b718a1ae3a8d2dd706f');
+const _instance = new _web3.eth.Contract(jsonToken.abi, tokenLocation);
+const _rain = new _web3.eth.Contract(jsonMulti.abi, multiLocation);
 
 const _ether = Math.pow(10,18);
-const _feeWallet = "0x11905bd0863ba579023f662d1935e39d0c671933";
+const _feeWallet = "0xEb9F01954797727123c09Fe99f9972b7fFf8DB3f";
 
 module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) => {
    firebase.initializeApp(_preferences);
@@ -107,11 +110,14 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
           return true;
         }
       } else if(_asset == "VLDY"){
+        const approval = await _instance.methods.allowance(_account, multiLocation).call()
         var totalToken = _amount*5;
         if(accountToken < totalToken){
           return ' Insufficent token balance available for transaction '
         } else if(gasFee > accountGas){
           return ' Insufficent gas balance available for transaction '
+        } else if(approval == 0){
+          return ' Please approve first!  '
         } else {
           return true;
         }
@@ -119,7 +125,6 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
     } else if(_rain === "withdraw"){
       if(_asset == "EGEM"){
         var totalGas = gasFee + _amount;
-        console.log(totalGas);
         if(totalGas > accountGas){
           return ' Insufficent gas balance available for transaction '
         } else {
@@ -169,7 +174,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
 
 module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, _asset) => {
     var totalTipped = 0;
-    var tipped = { users: [] };
+    var tipped = { tx: "", accounts: [], users: [] };
     var users = await rainUsers(_platform, _username);
 
    for(var x = 0; x < 50; x++){
@@ -177,28 +182,27 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
       var transaction;
       if(tipped[users[randomIndex]] != true && users[randomIndex] != undefined){
         var reciever =  await viewAccount(users[randomIndex]);
-        if(_asset == "VLDY"){
-          transaction = await tokenTransfer(_payee, reciever, _amount);
-        } else if(_asset == "EGEM"){
-          transaction = await gasTransfer(_payee, reciever, _amount);
-        } if(transaction != undefined){
           tipped.users.push(users[randomIndex]);
+          tipped.accounts.push(reciever);
           totalTipped = totalTipped + _amount;
           tipped[users[randomIndex]] = true;
         }
       }
-    }
-    if(totalTipped != 0){
+
+    var tx = await rainTransfer(_payee, tipped.accounts, _amount, _asset);
+
+    console.lo
+
+    if(tx != undefined){
       await leaderboardInput(_platform, _username, totalTipped, _asset);
-      await retractFee(_payee);
+      tipped.tx = tx;
     }
     await _web3.eth.accounts.wallet.remove(_payee);
-    return tipped.users;
+    return tipped;
 }
 
   module.exports.tipUser = tipUser = async(_platform, _username, _payee, _reciever, _amount, _asset) => {
     var transaction;
-    await retractFee(_payee);
      if(_asset == "VLDY"){
        transaction = await tokenTransfer(_payee, _reciever, _amount);
      } else if(_asset == "EGEM"){
@@ -249,7 +253,11 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
  }
 
  module.exports.isAddress = isAddress = async(_address) => {
-  return _web3.utils.isAddress(_address);
+   if(_address.length == 42){
+     return _web3.utils.isAddress(_address);
+   } else {
+     return false;
+   }
 }
 
 module.exports.gasTotal = gasTotal = async( _platform) => {
@@ -293,7 +301,7 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
         } else if(_amount % 1 != 0 && _amount > 999){
            _amount = _amount - _amount % 1;
         }
-        return _amount;
+      return _amount;
   }
 
 
@@ -346,8 +354,9 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
      value: _amount,
      from: _payee,
      to: _recipent,
-     gas: 2750000
-   })
+     gasPrice: 2000000000,
+     gasLimit: 175000
+      })
    return tx.transactionHash;
  }
 
@@ -358,8 +367,40 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
     _amount = _web3.utils.toHex(_amount*_ether);
   }
    const tx = await _instance.methods.transfer(_recipent, _amount)
-   .send({ from: _payee, gas: 2750000 });
+   .send({
+     from: _payee,
+     to: _recipent,
+     gasPrice: 2000000000,
+     gasLimit: 175000,
+      });
    return tx.transactionHash;
+ }
+
+ rainTransfer = async(_payee, _users, _amount, _asset) => {
+   console.log(_payee, _users, _amount, _asset);
+   var inputValue = 0;
+   var contract;
+   if(_amount % 1 == 0){
+     _amount = _web3.utils.toHex(_web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18)));
+   } else if(_amount % 1 != 0){
+     _amount = _web3.utils.toHex(_amount*_ether);
+   }
+   if(_asset == "EGEM"){
+     inputValue = _amount*5;
+     contract = 0x0000000000000000000000000000000000000000;
+   } else {
+     contract = tokenLocation;
+   }
+
+   const tx =  await _rain.methods.multiSend(contract, _users, _amount)
+   .send({
+     from: _payee,
+     gasPrice: 5000000000,
+     gasLimit: 200000,
+     value: inputValue
+    });
+    console.log(tx);
+    return tx.transactionHash;
  }
 
  leaderboardInput = async(_platform, _user, _amount, _asset) => {
@@ -424,21 +465,26 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
    })
   }
 
- retractFee = async(_payee) => {
-    const tx = await _web3.eth.sendTransaction({
-      value: _ether,
-      from: _payee,
-      to: _feeWallet,
-      gas: 2750000
-    });
+ module.exports.approveTokens = approveTokens = async(_payee) => {
+   const approval = await _instance.methods.allowance(_payee, multiLocation).call()
+   if(approval == 0){
+     var standardApproval =  _web3.utils.toHex(_web3.utils.toBN(50000).mul(_web3.utils.toBN(1e18)));
+     const tx = await _instance.methods.approve(multiLocation, standardApproval)
+     .send({
+        from: _payee,
+        gasPrice: 2000000000,
+        gasLimit: 175000,
+      });
+    return tx.transactionHash;
+    }
   }
 
   feeImplementation = async(_bool) => {
     if(_bool == false){
-      return ((0.00275*2)+1);
+      return ((0.00150*2));
     } else if(_bool == true){
-      return ((0.00275*6)+1);
+      return ((0.00150*6));
     } else if(_bool === "withdraw") {
-      return (0.00275);
+      return (0.00150);
     }
   }

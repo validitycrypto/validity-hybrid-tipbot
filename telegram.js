@@ -5,12 +5,12 @@ const wallet = require('./wallet.js');
 const telegraf = require('telegraf');
 
 const transactionModal  = (_hash) => Markup.inlineKeyboard([
-  Markup.urlButton('🔗 Tx',`https://explorer.egem.io/tx/${_hash}`),
+  Markup.urlButton('🔗 Tx',`https://kovan.etherscan.io/tx/${_hash}`),
   Markup.callbackButton('🔥 Tip', 'fire')
 ])
 
 const withdrawModal  = (_hash) => Markup.inlineKeyboard([
-  Markup.urlButton('🔗 Tx',`https://explorer.egem.io/tx/${_hash}`),
+  Markup.urlButton('🔗 Tx',`https://kovan.etherscan.io/tx/${_hash}`),
   Markup.callbackButton('🙌 Praise', 'praise')
 ])
 
@@ -205,7 +205,7 @@ tbot.command('stats', async(ctx) => {
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
   return ctx.replyWithMarkdown(`@${ctx.message.from.username}'s stats:'`
-    `\n💎 ` + '`' + `${gas[ctx.message.from.username]} EGEM `  + '`'
+    + `\n💎 ` + '`' + `${gas[ctx.message.from.username]} EGEM `  + '`'
     + `\n🌀 `  + '`' + `${token[ctx.message.from.username]} VLDY`  + '`');
 })
 
@@ -239,7 +239,7 @@ tbot.command('withdraw', async(ctx) => {
     return ctx.replyWithMarkdown("⚠️  Incorrect EtherGem address");
   }
 
-  if(wallet.isAddress(calling0x)){
+  if(await wallet.isAddress(calling0x) == true){
     inputParameters[1] = await wallet.decimalLimit(inputParameters[1]);
     var parameterValidity = await wallet.proofParameters(callingUser, null,
     inputParameters[1], inputParameters[2], true)
@@ -295,6 +295,24 @@ tbot.action('commands',(ctx) => {
   return ctx.replyWithMarkdown(commandList);
 })
 
+tbot.command('/approve', async(ctx) => {
+
+  var callingUser = ctx.message.from.username;
+  var calling0x = await wallet.proofAccount(callingUser);
+
+  if(await wallet.isAddress(calling0x) == true){
+     var tx = await wallet.approveTokens(calling0x);
+     if(tx != undefined){
+       return ctx.replyWithMarkdown("SUCCESS",
+       Extra.markup(withdrawModal(tx)));
+     } else {
+       return ctx.replyWithMarkdown("FAIL");
+     }
+  } else {
+    return ctx.replyWithMarkdown(calling0x);
+  }
+})
+
 tbot.action('praise', (ctx) => {
   return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username} says ` + `"` + randomPraise[Math.floor(Math.random() * randomPraise.length)] + `"`);
 })
@@ -319,7 +337,7 @@ tbot.command('/tip', async(ctx) => {
   var calling0x = await wallet.proofAccount(callingUser);
   var recieving0x;
 
-  if(wallet.isAddress(calling0x)){
+  if(await wallet.isAddress(calling0x) == true){
     inputParameters[1] = await wallet.decimalLimit(inputParameters[1]);
     var parameterValidity = await wallet.proofParameters(callingUser, targetUser,
     inputParameters[1], inputParameters[2], false)
@@ -358,13 +376,13 @@ tbot.action('fire', async(ctx) => {
   var calling0x = await wallet.proofAccount(callingUser);
   var recieving0x;
 
-  if(wallet.isAddress(calling0x)){
+  if(await wallet.isAddress(calling0x) == true){
     inputParameters[5] = await wallet.decimalLimit(inputParameters[1]);
     var parameterValidity = await wallet.proofParameters(callingUser, targetUser,
     inputParameters[5], inputParameters[6], false)
     if(parameterValidity == true){
       recieving0x = await wallet.proofAccount(targetUser);
-      if(wallet.isAddress(recieving0x)){
+      if(wallet.isAddress(recieving0x) == true){
           var balanceValidity = await wallet.proofBalances(calling0x,
             inputParameters[5], inputParameters[6], false);
           if(balanceValidity == true){
@@ -399,7 +417,7 @@ tbot.command('/rain', async(ctx) => {
   var callingUser = ctx.message.from.username;
   var calling0x = await wallet.proofAccount(callingUser);
 
-  if(wallet.isAddress(calling0x)){
+  if(await wallet.isAddress(calling0x) == true){
     inputParameters[0] = await wallet.decimalLimit(inputParameters[0]);
     var parameterValidity = await wallet.proofParameters(callingUser, null,
     inputParameters[0], inputParameters[1], true)
@@ -410,14 +428,15 @@ tbot.command('/rain', async(ctx) => {
             var rainedUsers = await wallet.tipRain("telegram",
             callingUser, calling0x, inputParameters[0],
             inputParameters[1]);
-            if(rainedUsers.length > 0){
+            if(rainedUsers.users.length > 0){
               return ctx.replyWithMarkdown(
                 `@${callingUser} rained `
-                +`@${rainedUsers[0]}, @${rainedUsers[1]}, `
-                +`@${rainedUsers[2]}, @${rainedUsers[3]} and `
-                +`@${rainedUsers[4]} of ` + ' `' + `${inputParameters[0]} `
-                +`${inputParameters[1]}` + ' `' +  '💥');
-            } else if(users.length == 0){
+                +`@${rainedUsers.users[0]}, @${rainedUsers.users[1]}, `
+                +`@${rainedUsers.users[2]}, @${rainedUsers.users[3]} and `
+                +`@${rainedUsers.users[4]} of ` + ' `' + `${inputParameters[0]} `
+                +`${inputParameters[1]}` + ' `' +  '💥',
+                Extra.markup(withdrawModal(rainedUsers.tx)));
+            } else if(rainedUsers.users.length == 0){
               return ctx.replyWithMarkdown('⚠️ No users active to rain');
             }
           } else {
