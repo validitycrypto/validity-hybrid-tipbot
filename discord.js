@@ -5,6 +5,52 @@ const wallet = require('./wallet.js');
 
 const prefixColors = [ 851823, 7277823, 15273215, 65535, 16711808, 16753920, 16777215 , 16776960,  255 ]
 
+const randomAdmin = [
+  'The simulacrum is never that which conceals the truth—it is the truth which conceals that there is none. \n The simulacrum is true.',
+  'I have a marketing proposal for your ICO admin 🗣',
+  'Blah, blah, blah, blah, BLAH!',
+  'Hyperreality or reality?',
+  'This is my turf dude 👊',
+  `STOP YO SHILLIN' 😡`,
+  'Get me some sugar',
+  'We are good hun',
+  `Y'all crazy ⏰`,
+  'NOCOINER ALERT',
+  'REEEEEEEEEEEE',
+  'normie',
+  'OOOF',
+  'SCEM',
+  'muh',
+  'rofl',
+  'kek'
+];
+
+const randomPraise = [
+  'License and registration please 🔦 ',
+  'But where is my tip?',
+  'YEEEEEEAAAAHHHHH',
+  'Seven blessings!',
+  'Wen deposit? 👀',
+  'Hallelujah! 👏',
+  'For Nakamoto?',
+  'For Isengard!',
+  'YEEEEEEEET',
+  'HODL',
+  'pl0x'
+];
+
+const randomFacts = [
+  'PoS (Proof of Stake) can be highly centralised, with the ability of a master public key which "solves" the nothing at stake condumrum, but at the cost of centralisation',
+  `There is a collective of miners utilising their combined hashpower to crack every existing Bitcoin private key using brute force, known as the Large Bitcoin Collider`,
+  `In the year 2017, 81% of all ICO's were amoral or inaffective, which resulted up to €300,0000,000 lost`,
+  'A high TPS (Transactions per second) throughput, unfortunately means centralisation is immient',
+  'ICOBench has a pay-per-review tiered system, with the more you bid the better the rating you get',
+  `There is over 32 BTC to be won, if one can solve Satoshi's puzzle transactions`,
+  'The majority of TRX dApps only orientate towards on gambling use-cases',
+  'Approximately 61% of the EOS supply resides in 100 addresses',
+  'Over 80% of the tops pairs on CMC are washedtraded'
+];
+
 const helpInfo =
     '\n`Command parameters`'
     +'\n`<user>` - An active telegram username, eg: @xGozzy'
@@ -133,10 +179,16 @@ commandTip = async(_msg) => {
               var tx = await wallet.tipUser("discord",
               callingUser, calling0x, recieving0x,
               inputParameters[1], inputParameters[2]);
-              return _msg.channel.send(
-                `<@!${_msg.author.id}> tipped `+
-                `${inputParameters[0]} of ` + ' `'
-                + `${inputParameters[1]} ${inputParameters[2]}` + ' `' +  ' 🎉');
+              const embed = new Discord.RichEmbed()
+                  .setTitle("🔗 Transaction")
+                  .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
+                  .setDescription(
+                    `<@!${_msg.author.id}> tipped `+
+                    `${inputParameters[0]} of ` + ' `'
+                    + `${inputParameters[1]} ${inputParameters[2]}` + ' `' +  ' 🎉'
+                  )
+                  .setURL(`https://kovan.etherscan.io/tx/${tx}`)
+              return _msg.channel.send({ embed });
             } else {
               return _msg.channel.send(balanceValidity);
             }
@@ -172,13 +224,25 @@ commandRain = async(_msg) => {
               var rainedUsers = await wallet.tipRain("discord",
               callingUser, calling0x, inputParameters[0],
               inputParameters[1]);
-              if(rainedUsers.length > 0){
-                return _msg.channel.send(
-                  `<@!${_msg.author.id}> rained `
-                  +`<@!${(await wallet.getID(rainedUsers[0])).replace('v','')}>, @${rainedUsers[1]}, `
-                  +`@${rainedUsers[2]}, @${rainedUsers[3]} and `
-                  +`@${rainedUsers[4]} of ` + ' `' + `${inputParameters[0]} `
-                  +`${inputParameters[1]}` + ' `' +  '💥');
+              if(rainedUsers.users.length > 0){
+                var x = 0;
+                var finalParse = "";
+                while(x < rainedUsers.users.length){
+                  if(x == rainedUsers.users.length-1 && x != 0){ finalParse =  finalParse + ' and '; }
+                  else if(x != 0 && rainedUsers.users.length > 1 ){ finalParse = finalParse + ','; }
+                  finalParse = finalParse + `<@!${(await wallet.getID(rainedUsers.users[x])).toString().replace(/[v]/g,'')}>`;
+                  x++;
+                }
+                const embed = new Discord.RichEmbed()
+                    .setTitle("🔗 Transaction")
+                    .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
+                    .setDescription(
+                      `<@!${_msg.author.id}> rained `
+                      + `${finalParse}` + ` of ` + ' `' + `${inputParameters[0]} `
+                      +`${inputParameters[1]}` + ' `' +  '💥'
+                    )
+                    .setURL(`https://kovan.etherscan.io/tx/${rainedUsers.tx}`)
+                return _msg.channel.send({ embed });
               } else {
                 return _msg.channel.send('⚠️ No users active to rain');
               }
@@ -216,11 +280,16 @@ commandWithdraw = async(_msg) => {
           inputParameters[0], inputParameters[1],
           inputParameters[2]);
           if(tx != undefined){
-            return _msg.channel.send(
-              `<@!${_msg.author.id}> withdrew to ` + ' `'
-              + `${inputParameters[0]}` + '`' +  ' of ' + ' `'
-              + `${inputParameters[1]} ${inputParameters[2]}`
-              + ' `' +  ' 📤')
+              const embed = new Discord.RichEmbed()
+                  .setTitle("🔗 Transaction")
+                  .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
+                  .setDescription(
+                    `<@!${_msg.author.id}> withdrew to ` + ' `'
+                    + `${inputParameters[0]}` + '`' +  ' of ' + ' `'
+                    + `${inputParameters[1]} ${inputParameters[2]}`
+                    + ' `' +  ' 📤')
+                    .setURL(`https://kovan.etherscan.io/tx/${tx}`)
+              return _msg.channel.send({ embed });
           }
         } else {
           return _msg.channel.send(balanceValidity);
@@ -279,6 +348,48 @@ commandAbout= async(_msg) => {
   return _msg.channel.send({ embed });
 }
 
+commandApprove= async(_msg) => {
+  var callingUser = _msg.author.username;
+  var calling0x = await wallet.proofAccount(callingUser);
+
+  if(await wallet.isAddress(calling0x) == true){
+     var tx = await wallet.approveTokens(calling0x);
+     if(tx != undefined){
+       const embed = new Discord.RichEmbed()
+           .setTitle("🔗 Transaction")
+           .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
+           .setDescription('Successfully approved')
+           .setURL(`https://kovan.etherscan.io/tx/${tx}`)
+       return _msg.channel.send({ embed });
+     } else {
+       return _msg.channel.send('⚠️ Error could not approve');
+     }
+  } else {
+    return _msg.channel.send(calling0x);
+  }
+}
+
+commandReset = async(_msg) => {
+  var callingUser = _msg.author.username;
+  var calling0x = await wallet.proofAccount(callingUser);
+
+  if(await wallet.isAddress(calling0x) == true){
+     var tx = await wallet.resetApprove(calling0x);
+     if(tx != undefined){
+       const embed = new Discord.RichEmbed()
+           .setTitle("🔗 Transaction")
+           .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
+           .setDescription('Successfully reset')
+           .setURL(`https://kovan.etherscan.io/tx/${tx}`)
+       return _msg.channel.send({ embed });
+     } else {
+       return _msg.channel.send('⚠️ Error could not reset ');
+     }
+  } else {
+    return _msg.channel.send(calling0x);
+  }
+}
+
 client.on('message', async(msg) => {
   if(msg.content === '/generate') {
     return commandGenerate(msg);
@@ -302,8 +413,16 @@ client.on('message', async(msg) => {
     return commandOveriew(msg);
   } else if(msg.content === '/about') {
     return commandAbout(msg);
-  } else if(msg.content === '/about') {
-    return commandAbout(msg);
+  } else if(msg.content === '/approve') {
+    return commandApprove(msg);
+  } else if(msg.content === '/reset') {
+    return commandReset(msg);
+  } else if(msg.content === '/admin') {
+    return msg.channel.send(randomAdmin[Math.floor(Math.random() * randomAdmin.length)])
+  } else if(msg.content === '/facts') {
+    return msg.channel.send(randomFacts[Math.floor(Math.random() * randomFacts.length)])
+  } else if(msg.content === '/praise') {
+    return msg.channel.send(randomPraise[Math.floor(Math.random() * randomPraise.length)])
   }
 });
 

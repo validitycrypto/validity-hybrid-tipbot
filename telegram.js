@@ -25,14 +25,21 @@ const menuModal = Markup.inlineKeyboard([
 ])
 
 const randomAdmin = [
+  'The simulacrum is never that which conceals the truth—it is the truth which conceals that there is none. \n The simulacrum is true.',
   'I have a marketing proposal for your ICO admin 🗣',
   'Blah, blah, blah, blah, BLAH!',
+  'Hyperreality or reality?',
   'This is my turf dude 👊',
   `STOP YO SHILLIN' 😡`,
   'Get me some sugar',
   'We are good hun',
   `Y'all crazy ⏰`,
+  'NOCOINER ALERT',
   'REEEEEEEEEEEE',
+  'normie',
+  'OOOF',
+  'SCEM',
+  'muh',
   'rofl',
   'kek'
 ];
@@ -45,6 +52,7 @@ const randomPraise = [
   'Wen deposit? 👀',
   'Hallelujah! 👏',
   'For Nakamoto?',
+  'For Isengard!',
   'YEEEEEEEET',
   'HODL',
   'pl0x'
@@ -52,13 +60,13 @@ const randomPraise = [
 
 const randomFacts = [
   'PoS (Proof of Stake) can be highly centralised, with the ability of a master public key which "solves" the nothing at stake condumrum, but at the cost of centralisation',
+  `There is a collective of miners utilising their combined hashpower to crack every existing Bitcoin private key using brute force, known as the Large Bitcoin Collider`,
   `In the year 2017, 81% of all ICO's were amoral or inaffective, which resulted up to €300,0000,000 lost`,
   'A high TPS (Transactions per second) throughput, unfortunately means centralisation is immient',
   'ICOBench has a pay-per-review tiered system, with the more you bid the better the rating you get',
   `There is over 32 BTC to be won, if one can solve Satoshi's puzzle transactions`,
-  'BFT (Byzantine Fault Tolerance) is very susipectible to manipulation',
+  'The majority of TRX dApps only orientate towards on gambling use-cases',
   'Approximately 61% of the EOS supply resides in 100 addresses',
-  'Majority fo TRX dApps only orientate towards on gambling use-cases',
   'Over 80% of the tops pairs on CMC are washedtraded'
 ];
 
@@ -303,14 +311,34 @@ tbot.command('/approve', async(ctx) => {
   if(await wallet.isAddress(calling0x) == true){
      var tx = await wallet.approveTokens(calling0x);
      if(tx != undefined){
-       return ctx.replyWithMarkdown("SUCCESS",
+       return ctx.replyWithMarkdown('Approval confrimed',
        Extra.markup(withdrawModal(tx)));
      } else {
-       return ctx.replyWithMarkdown("FAIL");
+       return ctx.replyWithMarkdown('⚠️ Error could approve');
      }
   } else {
     return ctx.replyWithMarkdown(calling0x);
   }
+})
+
+
+tbot.command('/reset', async(ctx) => {
+
+  var callingUser = ctx.message.from.username;
+  var calling0x = await wallet.proofAccount(callingUser);
+
+  if(await wallet.isAddress(calling0x) == true){
+     var tx = await wallet.resetApprove(calling0x);
+     if(tx != undefined){
+       return ctx.replyWithMarkdown('Approvals reset'
+       , Extra.markup(withdrawModal(tx)));
+     } else {
+       return ctx.replyWithMarkdown('⚠️ Error could not reset ');
+     }
+  } else {
+    return ctx.replyWithMarkdown(calling0x);
+  }
+
 })
 
 tbot.action('praise', (ctx) => {
@@ -343,7 +371,7 @@ tbot.command('/tip', async(ctx) => {
     inputParameters[1], inputParameters[2], false)
     if(parameterValidity == true){
       recieving0x = await wallet.proofAccount(targetUser);
-      if(wallet.isAddress(recieving0x)){
+      if(await wallet.isAddress(recieving0x) == true){
           var balanceValidity = await wallet.proofBalances(calling0x,
             inputParameters[1], inputParameters[2], false);
           if(balanceValidity == true){
@@ -369,20 +397,19 @@ tbot.command('/tip', async(ctx) => {
 })
 
 tbot.action('fire', async(ctx) => {
-  var caller = ctx.callbackQuery.from.username;
   var inputParameters = JSON.stringify(ctx.callbackQuery.message.text).split(" ");
-  var callingUser = ctx.message.from.username;
+  var callingUser = ctx.callbackQuery.from.username;
   var targetUser = inputParameters[2].replace('@', '');
   var calling0x = await wallet.proofAccount(callingUser);
   var recieving0x;
 
   if(await wallet.isAddress(calling0x) == true){
-    inputParameters[5] = await wallet.decimalLimit(inputParameters[1]);
+    inputParameters[5] = await wallet.decimalLimit(inputParameters[5]);
     var parameterValidity = await wallet.proofParameters(callingUser, targetUser,
     inputParameters[5], inputParameters[6], false)
     if(parameterValidity == true){
       recieving0x = await wallet.proofAccount(targetUser);
-      if(wallet.isAddress(recieving0x) == true){
+      if(await wallet.isAddress(recieving0x) == true){
           var balanceValidity = await wallet.proofBalances(calling0x,
             inputParameters[5], inputParameters[6], false);
           if(balanceValidity == true){
@@ -429,11 +456,17 @@ tbot.command('/rain', async(ctx) => {
             callingUser, calling0x, inputParameters[0],
             inputParameters[1]);
             if(rainedUsers.users.length > 0){
+              var x = 0;
+              var finalParse = "";
+              while(x < rainedUsers.users.length){
+                if(x == rainedUsers.users.length-1 && x != 0){ finalParse =  finalParse + ' and '; }
+                else if(x != 0 && rainedUsers.users.length > 1 ){ finalParse = finalParse + ','; }
+                finalParse = finalParse + `@${rainedUsers.users[x]}`;
+                x++;
+              }
               return ctx.replyWithMarkdown(
                 `@${callingUser} rained `
-                +`@${rainedUsers.users[0]}, @${rainedUsers.users[1]}, `
-                +`@${rainedUsers.users[2]}, @${rainedUsers.users[3]} and `
-                +`@${rainedUsers.users[4]} of ` + ' `' + `${inputParameters[0]} `
+                + `${finalParse}` + ` of ` + ' `' + `${inputParameters[0]} `
                 +`${inputParameters[1]}` + ' `' +  '💥',
                 Extra.markup(withdrawModal(rainedUsers.tx)));
             } else if(rainedUsers.users.length == 0){
