@@ -98,6 +98,19 @@ client.on('ready', async() => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
+commandLimit = async(_username) => {
+  var commandLimitor = await wallet.getCall(_username, "discord");
+  var currentTime = new Date();
+  console.log(commandLimitor , currentTime.getTime());
+  console.log(commandLimitor < currentTime.getTime() || commandLimitor == undefined)
+  if(commandLimitor < currentTime.getTime() || commandLimitor == undefined){
+    await wallet.logCall(_username, "discord");
+    return true;
+  } else {
+    return false;
+  }
+}
+
 commandGenerate = async(_msg) => {
   var address = await wallet.createAccount(_msg.author.username, _msg.author.id);
   if(address == undefined){
@@ -229,7 +242,7 @@ commandRain = async(_msg) => {
                 var finalParse = "";
                 while(x < rainedUsers.users.length){
                   if(x == rainedUsers.users.length-1 && x != 0){ finalParse =  finalParse + ' and '; }
-                  else if(x != 0 && rainedUsers.users.length > 1 ){ finalParse = finalParse + ','; }
+                  else if(x != 0 && rainedUsers.users.length > 1 ){ finalParse = finalParse + ', '; }
                   finalParse = finalParse + `<@!${(await wallet.getID(rainedUsers.users[x])).toString().replace(/[v]/g,'')}>`;
                   x++;
                 }
@@ -391,6 +404,9 @@ commandReset = async(_msg) => {
 }
 
 client.on('message', async(msg) => {
+  if(await commandLimit(msg.author.username) == true){
+  await wallet.logCall(msg.author.username, "discord");
+
   if(msg.content === '/generate') {
     return commandGenerate(msg);
   } else if(msg.content === '/balance') {
@@ -424,6 +440,8 @@ client.on('message', async(msg) => {
   } else if(msg.content === '/praise') {
     return msg.channel.send(randomPraise[Math.floor(Math.random() * randomPraise.length)])
   }
+
+}
 });
 
 }

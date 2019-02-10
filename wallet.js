@@ -40,7 +40,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
       return 'Want me to detuct that from your balance? 👋';
     } else if(_amount == 0){
       return 'Now why would you want to do that? 🤔';
-    } else if(!(_asset == "VLDY" || _asset == "EGEM")){
+    } else if(!(_asset == "VLDY" || _asset == "EGEM" || _asset == "vldy" || _asset == "egem")){
       return '⚠️ Incorrect asset type';
     } else {
       return true;
@@ -57,7 +57,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
       return 'Want me to detuct that from your balance? 👋';
     } else if(_amount == 0){
       return 'Now why would you want to do that? 🤔';
-    } else if(!(_asset == "VLDY" || _asset == "EGEM")){
+    } else if(!(_asset == "VLDY" || _asset == "EGEM" || _asset == "vldy" || _asset == "egem")){
       return '⚠️ Incorrect asset type';
     } else {
       return true;
@@ -85,14 +85,14 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
       console.log("Fee:", gasFee);
 
       if(_rain == false){
-        if(_asset == "EGEM"){
+        if(( _asset == "EGEM" || _asset == "egem")){
           var totalGas = gasFee + _amount;
           if(totalGas > accountGas){
             return ' Insufficent gas balance available for transaction '
           } else {
             return true;
           }
-        } else if(_asset == "VLDY"){
+        } else if(( _asset == "VLDY" || _asset == "vldy")){
           if(accountToken < _amount){
             return ' Insufficent token balance available for transaction '
           } else if(gasFee > accountGas){
@@ -102,14 +102,14 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
           }
       }
     } else if(_rain == true){
-      if(_asset == "EGEM"){
+      if(( _asset == "EGEM" || _asset == "egem")){
         var totalGas = gasFee + (_amount*5);
         if(totalGas > accountGas){
           return ' Insufficent gas balance available for transaction '
         } else {
           return true;
         }
-      } else if(_asset == "VLDY"){
+      } else if(( _asset == "VLDY" || _asset == "vldy")){
         const approval = await _instance.methods.allowance(_account, multiLocation).call()
         var approvalParse = (approval/_ether)
         var totalToken = _amount*5;
@@ -126,14 +126,14 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
         }
       }
     } else if(_rain === "withdraw"){
-      if(_asset == "EGEM"){
+      if(( _asset == "EGEM" || _asset == "egem")){
         var totalGas = gasFee + _amount;
         if(totalGas > accountGas){
           return ' Insufficent gas balance available for transaction '
         } else {
           return true;
         }
-      } else if(_asset == "VLDY"){
+      } else if(( _asset == "VLDY" || _asset == "vldy")){
         if(accountToken < _amount){
           return ' Insufficent token balance available for transaction '
         } else if(gasFee > accountGas){
@@ -204,9 +204,9 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
 
   module.exports.tipUser = tipUser = async(_platform, _username, _payee, _reciever, _amount, _asset) => {
     var transaction;
-     if(_asset == "VLDY"){
+     if((_asset == "VLDY" || _asset == "vldy")){
        transaction = await tokenTransfer(_payee, _reciever, _amount);
-     } else if(_asset == "EGEM"){
+     } else if((_asset == "EGEM" || _asset == "egem")){
        transaction = await gasTransfer(_payee, _reciever, _amount);
      } if(transaction != undefined){
        await leaderboardInput(_platform, _username, _amount, _asset);
@@ -240,6 +240,30 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
      return account.address;
    }
  }
+
+   module.exports.logCall = logCall = async(_username, _platform) => {
+    _platform = _platform.toString() + _username.toString();
+    var timestampLimit = new Date();
+    console.log("OLD", timestampLimit.getTime());
+    await timestampLimit.setSeconds(timestampLimit.getSeconds() + 10);
+    console.log("NEW", timestampLimit.getTime());
+      await firebase.firestore().collection(_platform).add({
+        call: timestampLimit.getTime()
+      })
+    }
+
+    module.exports.getCall = getCall = async(_username, _platform) => {
+     _platform = _platform.toString() + _username.toString();
+     return await firebase.firestore().collection(_platform)
+       .orderBy('call', 'desc').limit(1).get()
+       .then(async(state) => {
+         var result;
+         await state.forEach((asset) => {
+            result = asset.data().call;
+        })
+        return result;
+       })
+     }
 
   module.exports.tokenbalance = tokenBalance = async(_target) => {
     console.log(_target);
@@ -351,12 +375,14 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
    } else if(_amount % 1 != 0){
      _amount = _web3.utils.toHex(_amount*_ether);
    }
+   const nonceCount = await _web3.eth.getTransactionCount(_payee)
    const tx = await _web3.eth.sendTransaction({
      value: _amount,
      from: _payee,
      to: _recipent,
-     gasPrice: 2000000000,
-     gasLimit: 175000
+     gasPrice: 3000000000,
+     gasLimit: 175000,
+     nonce: nonceCount
       })
    return tx.transactionHash;
  }
@@ -367,13 +393,15 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
   } else if(_amount % 1 != 0){
     _amount = _web3.utils.toHex(_amount*_ether);
   }
+   const nonceCount = await _web3.eth.getTransactionCount(_payee)
    const tx = await _instance.methods.transfer(_recipent, _amount)
    .send({
-     from: _payee,
-     to: _recipent,
-     gasPrice: 2000000000,
-     gasLimit: 175000,
-      });
+      from: _payee,
+      to: _recipent,
+      gasPrice: 3000000000,
+      gasLimit: 175000,
+      nonce: nonceCount
+    });
    return tx.transactionHash;
  }
 
@@ -391,12 +419,14 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
      contract = tokenLocation;
    }
 
+   const nonceCount = await _web3.eth.getTransactionCount(_payee)
    const tx =  await _rain.methods.multiSend(contract, _users, _amount)
    .send({
-     from: _payee,
-     gasPrice: 5000000000,
-     gasLimit: 200000,
-     value: inputValue
+      from: _payee,
+      value: inputValue,
+      gasPrice: 3250000000,
+      gasLimit: 175000,
+      nonce: nonceCount
     });
     console.log(tx);
     return tx.transactionHash;
@@ -473,11 +503,13 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
    const approval = await _instance.methods.allowance(_payee, multiLocation).call()
    if(approval == 0){
      var standardApproval =  _web3.utils.toHex(_web3.utils.toBN(50000).mul(_web3.utils.toBN(1e18)));
+     const nonceCount = await _web3.eth.getTransactionCount(_payee)
      const tx = await _instance.methods.approve(multiLocation, standardApproval)
      .send({
         from: _payee,
-        gasPrice: 2000000000,
+        gasPrice: 3000000000,
         gasLimit: 175000,
+        nonce: nonceCount
       });
     return tx.transactionHash;
     }
@@ -487,10 +519,12 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
       const currentValue = await _instance.methods.allowance(_payee, multiLocation).call()
       var subtractValue =  _web3.utils.toHex(_web3.utils.toBN(currentValue));
       const tx = await _instance.methods.decreaseAllowance(multiLocation, subtractValue)
+      const nonceCount = await _web3.eth.getTransactionCount(_payee)
       .send({
          from: _payee,
-         gasPrice: 2000000000,
+         gasPrice: 3000000000,
          gasLimit: 175000,
+         nonce: nonceCount
        });
      return tx.transactionHash;
    }
