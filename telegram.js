@@ -5,12 +5,12 @@ const wallet = require('./wallet.js');
 const telegraf = require('telegraf');
 
 const transactionModal  = (_hash) => Markup.inlineKeyboard([
-  Markup.urlButton('🔗 Tx',`https://kovan.etherscan.io/tx/${_hash}`),
+  Markup.urlButton('🔗 Tx',`https://blockchain.egem.io/txes?input=${_hash}`),
   Markup.callbackButton('🔥 Tip', 'fire')
 ])
 
 const withdrawModal  = (_hash) => Markup.inlineKeyboard([
-  Markup.urlButton('🔗 Tx',`https://kovan.etherscan.io/tx/${_hash}`),
+  Markup.urlButton('🔗 Tx',`https://blockchain.egem.io/txes?input=${_hash}`),
   Markup.callbackButton('🙌 Praise', 'praise')
 ])
 

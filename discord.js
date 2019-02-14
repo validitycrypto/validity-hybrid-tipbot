@@ -200,7 +200,7 @@ commandTip = async(_msg) => {
                     `${inputParameters[0]} of ` + ' `'
                     + `${inputParameters[1]} ${inputParameters[2]}` + ' `' +  ' 🎉'
                   )
-                  .setURL(`https://kovan.etherscan.io/tx/${tx}`)
+                  .setURL(`https://blockchain.egem.io/txes?input=${tx}`)
               return _msg.channel.send({ embed });
             } else {
               return _msg.channel.send(balanceValidity);
@@ -254,7 +254,7 @@ commandRain = async(_msg) => {
                       + `${finalParse}` + ` of ` + ' `' + `${inputParameters[0]} `
                       +`${inputParameters[1]}` + ' `' +  '💥'
                     )
-                    .setURL(`https://kovan.etherscan.io/tx/${rainedUsers.tx}`)
+                    .setURL(`https://blockchain.egem.io/txes?input=${rainedUsers.tx}`)
                 return _msg.channel.send({ embed });
               } else {
                 return _msg.channel.send('⚠️ No users active to rain');
@@ -301,7 +301,7 @@ commandWithdraw = async(_msg) => {
                     + `${inputParameters[0]}` + '`' +  ' of ' + ' `'
                     + `${inputParameters[1]} ${inputParameters[2]}`
                     + ' `' +  ' 📤')
-                    .setURL(`https://kovan.etherscan.io/tx/${tx}`)
+                    .setURL(`https://blockchain.egem.io/txes?input=${tx}`)
               return _msg.channel.send({ embed });
           }
         } else {
@@ -372,7 +372,7 @@ commandApprove= async(_msg) => {
            .setTitle("🔗 Transaction")
            .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
            .setDescription('Successfully approved')
-           .setURL(`https://kovan.etherscan.io/tx/${tx}`)
+           .setURL(`https://blockchain.egem.io/txes?input=${tx}`)
        return _msg.channel.send({ embed });
      } else {
        return _msg.channel.send('⚠️ Error could not approve');
@@ -393,7 +393,7 @@ commandReset = async(_msg) => {
            .setTitle("🔗 Transaction")
            .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
            .setDescription('Successfully reset')
-           .setURL(`https://kovan.etherscan.io/tx/${tx}`)
+           .setURL(`https://blockchain.egem.io/txes?input=${tx}`)
        return _msg.channel.send({ embed });
      } else {
        return _msg.channel.send('⚠️ Error could not reset ');
@@ -404,44 +404,89 @@ commandReset = async(_msg) => {
 }
 
 client.on('message', async(msg) => {
-  if(await commandLimit(msg.author.username) == true){
-  await wallet.logCall(msg.author.username, "discord");
 
   if(msg.content === '/generate') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandGenerate(msg);
+    }
   } else if(msg.content === '/balance') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandBalance(msg);
+    }
   } else if(msg.content === '/leaderboard') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandLeaderboard(msg);
+    }
   } else if(msg.content === '/deposit') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandDeposit(msg);
+    }
   } else if(msg.content.split(" ")[0] === '/tip') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandTip(msg);
+    }
   } else if(msg.content.split(" ")[0] === '/rain') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandRain(msg);
+    }
   } else if(msg.content.split(" ")[0] === '/withdraw') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandWithdraw(msg);
+    }
   }  else if(msg.content === '/stats') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandStats(msg);
+    }
   } else if(msg.content === '/help') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandHelp(msg);
+    }
   } else if(msg.content === '/commands') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandOveriew(msg);
+    }
   } else if(msg.content === '/about') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandAbout(msg);
+    }
   } else if(msg.content === '/approve') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandApprove(msg);
+    }
   } else if(msg.content === '/reset') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return commandReset(msg);
+    }
   } else if(msg.content === '/admin') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return msg.channel.send(randomAdmin[Math.floor(Math.random() * randomAdmin.length)])
+    }
   } else if(msg.content === '/facts') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return msg.channel.send(randomFacts[Math.floor(Math.random() * randomFacts.length)])
+    }
   } else if(msg.content === '/praise') {
+    if(await commandLimit(msg.author.username) == true){
+    await wallet.logCall(msg.author.username, "discord");
     return msg.channel.send(randomPraise[Math.floor(Math.random() * randomPraise.length)])
+    }
   }
 
-}
 });
 
 }

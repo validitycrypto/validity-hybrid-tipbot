@@ -1,24 +1,26 @@
 
-const tokenLocation = "0xDB1E82144bFde4e41E7186Bc579D3841A0DaA51A";
-const multiLocation = "0x7794df0d811d3ed220646bae2d40ea8e1357d71b";
+const tokenLocation = "0xb0702df32de0371f39a98cc911a2dd69c3a13e6f";
+const multiLocation = "0x010a89afa45b92475a9c4513745613ac33e7289f";
 const jsonMulti = require("./build/contracts/MultiTX.json");
 const jsonToken = require("./build/contracts/ERC20d.json");
 
-const firebase = require('firebase');
 const Web3 = require('web3');
+const admin = require("firebase-admin");
 
-const _web3 = new Web3(Web3.givenProvider || 'https://kovan.infura.io/v3/cbb9289c56b44b718a1ae3a8d2dd706f');
+const _web3 = new Web3('https://jsonrpc.egem.io/custom');
 const _instance = new _web3.eth.Contract(jsonToken.abi, tokenLocation);
 const _rain = new _web3.eth.Contract(jsonMulti.abi, multiLocation);
 
 const _ether = Math.pow(10,18);
-const _feeWallet = "0xEb9F01954797727123c09Fe99f9972b7fFf8DB3f";
+const _feeWallet = "0xaB339e0d3EE069c7628ff84fFa50edB05F527F3c";
 
 module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) => {
-   firebase.initializeApp(_preferences);
-   firebase.firestore().settings({
+   await _web3.eth.accounts.wallet.clear();
+   await admin.initializeApp(_preferences);
+   await admin.firestore().settings({
      timestampsInSnapshots: true
    });
+
  }
 
  module.exports.proofParameters = proofParameters = (_caller, _user, _amount, _asset, _rain) => {
@@ -148,7 +150,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
  module.exports.viewAccount = viewAccount = async(_username) => {
     var id = await getID(_username);
     if(id != undefined){
-      return await firebase.firestore().collection(id)
+      return await admin.firestore().collection(id)
       .orderBy('address', 'desc').limit(1).get()
       .then(async(state) => {
         var result;
@@ -164,7 +166,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
 
  module.exports.getUsername = getUsername = async(_chatid) => {
    _chatid = "v" + _chatid.toString();
-  return await firebase.firestore().collection(_chatid)
+  return await admin.firestore().collection(_chatid)
   .orderBy('user', 'desc').limit(1).get()
   .then(async(state) => {
     var result;
@@ -218,7 +220,7 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
  module.exports.withdrawFunds = tipUser = async(_payee, _target, _amount, _asset) => {
    var transaction;
     if(_asset == "VLDY"){
-      transaction = await tokenTransfer(_payee, _target, _amount);
+      transaction = await tokenTransfer(_payee, _target, _amount, private);
     } else if(_asset == "EGEM"){
       transaction = await gasTransfer(_payee, _target, _amount);
     _web3.eth.accounts.wallet.remove(_payee);
@@ -231,11 +233,11 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
    if(await viewAccount(_username) == undefined){
     var account = _web3.eth.accounts.create();
 	   console.log(account);
-     await firebase.firestore().collection(_chatid).add({
+     await admin.firestore().collection(_chatid).add({
        privateKey: account.privateKey,
        address: account.address,
        user: _username});
-     await firebase.firestore().collection(_username).add({
+     await admin.firestore().collection(_username).add({
        id: _chatid });
      return account.address;
    }
@@ -245,16 +247,16 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
     _platform = _platform.toString() + _username.toString();
     var timestampLimit = new Date();
     console.log("OLD", timestampLimit.getTime());
-    await timestampLimit.setSeconds(timestampLimit.getSeconds() + 10);
+    await timestampLimit.setSeconds(timestampLimit.getSeconds() + 3);
     console.log("NEW", timestampLimit.getTime());
-      await firebase.firestore().collection(_platform).add({
+      await admin.firestore().collection(_platform).add({
         call: timestampLimit.getTime()
       })
     }
 
     module.exports.getCall = getCall = async(_username, _platform) => {
      _platform = _platform.toString() + _username.toString();
-     return await firebase.firestore().collection(_platform)
+     return await admin.firestore().collection(_platform)
        .orderBy('call', 'desc').limit(1).get()
        .then(async(state) => {
          var result;
@@ -286,7 +288,7 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
 }
 
 module.exports.gasTotal = gasTotal = async( _platform) => {
-    return await firebase.firestore().collection(_platform)
+    return await admin.firestore().collection(_platform)
       .orderBy('gas', 'desc').get()
       .then(async(state) => {
         var score = {};
@@ -303,7 +305,7 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
     }
 
      module.exports.tokenTotal =  tokenTotal = async( _platform) => {
-       return await firebase.firestore().collection(_platform)
+       return await admin.firestore().collection(_platform)
        .orderBy('token', 'desc').get()
        .then(async(state) => {
          var score = {};
@@ -333,7 +335,7 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
     module.exports.getAccount = getAccount = async(_username) => {
      var id = await getID(_username);
      if(id != undefined){
-       return await firebase.firestore().collection(id)
+       return await admin.firestore().collection(id)
        .orderBy('privateKey', 'desc').limit(1).get()
        .then(async(state) => {
          var result;
@@ -353,7 +355,7 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
   }
 
   rainUsers = async( _platform, _user) => {
-       return await firebase.firestore().collection(_platform)
+       return await admin.firestore().collection(_platform)
        .orderBy('user', 'desc').get()
        .then(async(state) => {
          var userList = [];
@@ -375,34 +377,60 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
    } else if(_amount % 1 != 0){
      _amount = _web3.utils.toHex(_amount*_ether);
    }
-   const nonceCount = await _web3.eth.getTransactionCount(_payee)
+
+   const executionCost = await _web3.eth.estimateGas({
+       data: _instance.methods.transfer(_recipent, _amount).encodeABI(),
+       from: _payee,
+       to: tokenLocation,
+    });
+
+    const properNonce = await _web3.eth.getTransactionCount(_payee);
+    const recentBlock = await _web3.eth.getBlock("latest");
+    const gasHeight = 30000000000;
+
+    console.log('Price:', gasHeight);
+    console.log('Nonce:', properNonce);
+    console.log('Limit:', recentBlock.gasLimit);
+
    const tx = await _web3.eth.sendTransaction({
      value: _amount,
      from: _payee,
      to: _recipent,
-     gasPrice: 3000000000,
-     gasLimit: 175000,
-     nonce: nonceCount
-      })
+     nonce: _web3.utils.toHex(properNonce),
+     gasPrice: _web3.utils.toHex(gasHeight),
+     gasLimit: _web3.utils.toHex(recentBlock.gasLimit),
+   });
    return tx.transactionHash;
  }
 
-tokenTransfer = async(_payee, _recipent, _amount) => {
+tokenTransfer = async(_payee, _recipent, _amount, _privatekey) => {
   if(_amount % 1 == 0){
     _amount = _web3.utils.toHex(_web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18)));
   } else if(_amount % 1 != 0){
     _amount = _web3.utils.toHex(_amount*_ether);
   }
-   const nonceCount = await _web3.eth.getTransactionCount(_payee)
-   const tx = await _instance.methods.transfer(_recipent, _amount)
-   .send({
+
+  const executionCost = await _web3.eth.estimateGas({
+      data: _instance.methods.transfer(_recipent, _amount).encodeABI(),
       from: _payee,
-      to: _recipent,
-      gasPrice: 3000000000,
-      gasLimit: 175000,
-      nonce: nonceCount
-    });
-   return tx.transactionHash;
+      to: tokenLocation,
+   });
+
+   const properNonce = await _web3.eth.getTransactionCount(_payee);
+   const recentBlock = await _web3.eth.getBlock("latest");
+   const gasHeight = 30000000000;
+
+   console.log('Price:', gasHeight);
+   console.log('Nonce:', properNonce);
+   console.log('Limit:', recentBlock.gasLimit);
+
+    const tx = await _instance.methods.transfer(_recipent, _amount).send({
+       from: _payee,
+       nonce: _web3.utils.toHex(properNonce),
+       gasPrice: _web3.utils.toHex(gasHeight),
+       gasLimit: _web3.utils.toHex(recentBlock.gasLimit),
+     });
+    return tx.transactionHash;
  }
 
  rainTransfer = async(_payee, _users, _amount, _asset) => {
@@ -418,17 +446,13 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
    } else {
      contract = tokenLocation;
    }
-
-   const nonceCount = await _web3.eth.getTransactionCount(_payee)
-   const tx =  await _rain.methods.multiSend(contract, _users, _amount)
+   const tx = await _rain.methods.multiSend(contract, _users, _amount)
    .send({
       from: _payee,
       value: inputValue,
-      gasPrice: 3250000000,
-      gasLimit: 175000,
-      nonce: nonceCount
+      gasPrice: 60000000000,
+      gasLimit: 160000
     });
-    console.log(tx);
     return tx.transactionHash;
  }
 
@@ -442,19 +466,19 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
     } else if(_asset == "VLDY"){
       token = parseFloat(token)+parseFloat(_amount);
     }
-    await firebase.firestore().collection(_platform).add({
+    await admin.firestore().collection(_platform).add({
       token: token,
       user: _user,
       gas: gas
     })
-    return await firebase.firestore().collection(_user).add({
+    return await admin.firestore().collection(_user).add({
       [_platform]: gas,
       token: token
     })
  }
 
  userGas = userGas = async(_platform ,_user) => {
-      return await firebase.firestore().collection(_user)
+      return await admin.firestore().collection(_user)
       .orderBy(`${_platform}`, 'desc').limit(1).get()
       .then(async(state) => {
         var result;
@@ -466,7 +490,7 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
     }
 
    userToken = async(_platform ,_user) => {
-       return await firebase.firestore().collection(_user)
+       return await admin.firestore().collection(_user)
        .orderBy('token', 'desc').get()
        .then(async(state) => {
          var result;
@@ -483,7 +507,7 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
      }
 
  module.exports.getID = getID = async(_username) => {
-     return await firebase.firestore().collection(_username)
+     return await admin.firestore().collection(_username)
      .orderBy('id', 'desc').limit(1).get()
      .then(async(state) => {
        var result;
@@ -503,13 +527,11 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
    const approval = await _instance.methods.allowance(_payee, multiLocation).call()
    if(approval == 0){
      var standardApproval =  _web3.utils.toHex(_web3.utils.toBN(50000).mul(_web3.utils.toBN(1e18)));
-     const nonceCount = await _web3.eth.getTransactionCount(_payee)
      const tx = await _instance.methods.approve(multiLocation, standardApproval)
      .send({
         from: _payee,
         gasPrice: 3000000000,
-        gasLimit: 175000,
-        nonce: nonceCount
+        gasLimit: 147500
       });
     return tx.transactionHash;
     }
@@ -519,22 +541,20 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
       const currentValue = await _instance.methods.allowance(_payee, multiLocation).call()
       var subtractValue =  _web3.utils.toHex(_web3.utils.toBN(currentValue));
       const tx = await _instance.methods.decreaseAllowance(multiLocation, subtractValue)
-      const nonceCount = await _web3.eth.getTransactionCount(_payee)
       .send({
          from: _payee,
-         gasPrice: 3000000000,
-         gasLimit: 175000,
-         nonce: nonceCount
+         gasPrice: 2000000000,
+         gasLimit: 157500
        });
      return tx.transactionHash;
    }
 
   feeImplementation = async(_bool) => {
     if(_bool == false){
-      return ((0.00150*2));
+      return ((0.0000000035*2)+1);
     } else if(_bool == true){
-      return ((0.00150*6));
+      return ((0.0000000035*6)+1);
     } else if(_bool === "withdraw") {
-      return (0.00150);
+      return (0.0000000035);
     }
   }
