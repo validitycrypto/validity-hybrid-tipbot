@@ -127,11 +127,9 @@ module.exports.initialiseTelegram = initialiseTelegram = async(_token) => {
   await tbot.launch();
 
 
-commandLimit = async(_username) => {
-  var commandLimitor = await wallet.getCall(_username, "telegram");
+commandLimit = async(_id) => {
+  var commandLimitor = await wallet.getCall(_id);
   var currentTime = new Date();
-  console.log(commandLimitor , currentTime.getTime());
-  console.log(commandLimitor < currentTime.getTime() || commandLimitor == undefined)
   if(commandLimitor < currentTime.getTime() || commandLimitor == undefined){
     return true;
   } else {
@@ -151,8 +149,8 @@ tbot.start((ctx) => ctx.replyWithMarkdown(
 ,Extra.markup(menuModal)))
 
 tbot.command('leaderboard', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
 
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
@@ -174,8 +172,8 @@ tbot.command('leaderboard', async(ctx) => {
 })
 
 tbot.action('leaderboard', async(ctx) => {
-  if(await commandLimit(ctx.callbackQuery.from.username) == true){
-  await wallet.logCall(ctx.callbackQuery.from.username, "telegram");
+  if(await commandLimit(ctx.callbackQuery.from.id) == true){
+  await wallet.logCall(ctx.callbackQuery.from.id);
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
   return ctx.replyWithMarkdown(
@@ -196,8 +194,8 @@ tbot.action('leaderboard', async(ctx) => {
 })
 
 tbot.command('balance', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
   var account = await wallet.viewAccount(ctx.message.from.username);
   if(account == undefined){
     return ctx.replyWithMarkdown('⚠️ ***Please generate an account first by using the command:*** `/generate`');
@@ -211,8 +209,8 @@ tbot.command('balance', async(ctx) => {
 })
 
 tbot.action('balance' , async(ctx) => {
-  if(await commandLimit(ctx.callbackQuery.from.username) == true){
-  await wallet.logCall(ctx.callbackQuery.from.username, "telegram");
+  if(await commandLimit(ctx.callbackQuery.from.id) == true){
+  await wallet.logCall(ctx.callbackQuery.from.id);
   var account = await wallet.viewAccount(ctx.callbackQuery.from.username);
   if(account == undefined){
     return ctx.replyWithMarkdown('⚠️ ***Please generate an account first by using the command:*** `/generate`');
@@ -221,27 +219,27 @@ tbot.action('balance' , async(ctx) => {
     var gas = await wallet.gasBalance(account);
     return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username}'s funds: ` + '`' + ` 💎 ${gas}`
     + ' EGEM ' + ` 🌀 ${token}` + ' VLDY' + '`');
-  }
+    }
   }
 })
 
 tbot.command('help', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
   return ctx.replyWithMarkdown(helpInfo);
   }
 })
 
 tbot.action('help', async(ctx) => {
-  if(await commandLimit(ctx.callbackQuery.from.username) == true){
-  await wallet.logCall(ctx.callbackQuery.from.username, "telegram");
+  if(await commandLimit(ctx.callbackQuery.from.id) == true){
+  await wallet.logCall(ctx.callbackQuery.from.id);
   return ctx.replyWithMarkdown(helpInfo);
   }
 })
 
 tbot.command('stats', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
   return ctx.replyWithMarkdown(`@${ctx.message.from.username}'s stats:'`
@@ -251,8 +249,8 @@ tbot.command('stats', async(ctx) => {
 })
 
 tbot.action('stats', async(ctx) => {
-  if(await commandLimit(ctx.callbackQuery.from.username) == true){
-  await wallet.logCall(ctx.callbackQuery.from.username, "telegram");
+  if(await commandLimit(ctx.callbackQuery.from.id) == true){
+  await wallet.logCall(ctx.callbackQuery.from.id);
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
   return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username}'s stats:'`
@@ -262,24 +260,24 @@ tbot.action('stats', async(ctx) => {
 })
 
 tbot.command('deposit', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
   var nuo = await wallet.viewAccount(ctx.message.from.username);
   return ctx.replyWithMarkdown(`@${ctx.message.from.username} your depositing address is: ` + '`' + `${nuo}` + '`');
   }
 })
 
 tbot.action('deposit', async(ctx) => {
-  if(await commandLimit(ctx.callbackQuery.from.username) == true){
-  await wallet.logCall(ctx.callbackQuery.from.username, "telegram");
+  if(await commandLimit(ctx.callbackQuery.from.id) == true){
+  await wallet.logCall(ctx.callbackQuery.from.id);
   var nuo = await wallet.viewAccount(ctx.callbackQuery.from.username);
   return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username} your depositing address is: ` + '`' + `${nuo}` + '`');
   }
 })
 
 tbot.command('withdraw', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
   var callingUser = ctx.message.from.username;
   var calling0x = await wallet.proofAccount(callingUser);
   var inputParameters = ctx.message.text.split("/withdraw ").pop().split(" ");
@@ -323,46 +321,54 @@ tbot.command('withdraw', async(ctx) => {
 })
 
 tbot.command('generate', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
-  var address = await wallet.createAccount(ctx.message.from.username, ctx.message.from.id);
-  if(address == undefined){
-    return ctx.replyWithMarkdown(`🚫 @${ctx.message.from.username} ***you have already generated an account***`);
-  } else if(address != undefined) {
-    return ctx.replyWithMarkdown(`@${ctx.message.from.username} your account address is: ` + '`' + `${address}` + '`');
+  if(await commandLimit(ctx.message.from.id) == true){
+    await wallet.logCall(ctx.message.from.id);
+    if(ctx.message.from.username != undefined){
+      var address = await wallet.createAccount(ctx.message.from.username, ctx.message.from.id);
+      if(address == undefined){
+        return ctx.replyWithMarkdown(`🚫 @${ctx.message.from.username} ***you have already generated an account***`);
+      } else if(address != undefined) {
+        return ctx.replyWithMarkdown(`@${ctx.message.from.username} your account address is: ` + '`' + `${address}` + '`');
+    }
+} else {
+  return ctx.replyWithMarkdown('⚠️ Please set a telegram username');
   }
  }
 })
 
 tbot.action('generate', async(ctx) => {
-  if(await commandLimit(ctx.callbackQuery.from.username) == true){
-  await wallet.logCall(ctx.callbackQuery.from.username, "telegram");
-  var address = await wallet.createAccount(ctx.callbackQuery.from.username, ctx.callbackQuery.from.id);
-  if(address == undefined){
-    return ctx.replyWithMarkdown(`🚫 @${ctx.callbackQuery.from.username} ***you have already generated an account***`);
-  } else if(address != undefined) {
-    return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username} your account address is: ` + '`' + `${address}` + '`');
+  if(await commandLimit(ctx.callbackQuery.from.id) == true){
+  await wallet.logCall(ctx.callbackQuery.from.id);
+  if(ctx.callbackQuery.from.username != undefined){
+    var address = await wallet.createAccount(ctx.callbackQuery.from.username, ctx.callbackQuery.from.id);
+    if(address == undefined){
+      return ctx.replyWithMarkdown(`🚫 @${ctx.callbackQuery.from.username} ***you have already generated an account***`);
+    } else if(address != undefined) {
+      return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username} your account address is: ` + '`' + `${address}` + '`');
+    }
+  } else {
+    return ctx.replyWithMarkdown('⚠️ Please set a telegram username');
   }
  }
 })
 
 tbot.command('/commands',async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
   return ctx.replyWithMarkdown(commandList);
   }
 })
 
 tbot.action('commands', async(ctx) => {
-  if(await commandLimit(ctx.callbackQuery.from.username) == true){
-  await wallet.logCall(ctx.callbackQuery.from.username, "telegram");
+  if(await commandLimit(ctx.callbackQuery.from.id) == true){
+  await wallet.logCall(ctx.callbackQuery.from.id);
   return ctx.replyWithMarkdown(commandList);
   }
 })
 
 tbot.command('/approve', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
 
   var callingUser = ctx.message.from.username;
   var calling0x = await wallet.proofAccount(callingUser);
@@ -383,8 +389,8 @@ tbot.command('/approve', async(ctx) => {
 
 
 tbot.command('/reset', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
 
   var callingUser = ctx.message.from.username;
   var calling0x = await wallet.proofAccount(callingUser);
@@ -404,29 +410,29 @@ tbot.command('/reset', async(ctx) => {
 })
 
 tbot.action('praise', async(ctx) => {
-  if(await commandLimit(ctx.callbackQuery.from.username) == true){
-  await wallet.logCall(ctx.callbackQuery.from.username, "telegram");
+  if(await commandLimit(ctx.callbackQuery.from.id) == true){
+  await wallet.logCall(ctx.callbackQuery.from.id);
   return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username} says ` + `"` + randomPraise[Math.floor(Math.random() * randomPraise.length)] + `"`);
 }
 })
 
 tbot.command('admin', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
   return ctx.replyWithMarkdown(randomAdmin[Math.floor(Math.random() * randomAdmin.length)]);
 }
 })
 
 tbot.command('facts', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
   return ctx.replyWithMarkdown(randomFacts[Math.floor(Math.random() * randomFacts.length)]);
  }
 })
 
 tbot.command('/tip', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
   var inputParameters = ctx.message.text.split("/tip ").pop().split(" ");
 
   if(inputParameters.length != 3){
@@ -471,8 +477,8 @@ tbot.command('/tip', async(ctx) => {
 })
 
 tbot.action('fire', async(ctx) => {
-  if(await commandLimit(ctx.callbackQuery.from.username) == true){
-  await wallet.logCall(ctx.callbackQuery.from.username, "telegram");
+  if(await commandLimit(ctx.callbackQuery.from.id) == true){
+  await wallet.logCall(ctx.callbackQuery.from.id);
   var inputParameters = JSON.stringify(ctx.callbackQuery.message.text).split(" ");
   var callingUser = ctx.callbackQuery.from.username;
   var targetUser = inputParameters[2].replace('@', '');
@@ -512,8 +518,8 @@ tbot.action('fire', async(ctx) => {
 });
 
 tbot.command('/rain', async(ctx) => {
-  if(await commandLimit(ctx.message.from.username) == true){
-  await wallet.logCall(ctx.message.from.username, "telegram");
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
   var inputParameters = ctx.message.text.split("/rain ").pop().split(" ");
 
   if(inputParameters.length != 2){

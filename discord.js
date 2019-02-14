@@ -98,13 +98,13 @@ client.on('ready', async() => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
-commandLimit = async(_username) => {
-  var commandLimitor = await wallet.getCall(_username, "discord");
+commandLimit = async(_id) => {
+  var commandLimitor = await wallet.getCall(_id);
   var currentTime = new Date();
   console.log(commandLimitor , currentTime.getTime());
   console.log(commandLimitor < currentTime.getTime() || commandLimitor == undefined)
   if(commandLimitor < currentTime.getTime() || commandLimitor == undefined){
-    await wallet.logCall(_username, "discord");
+    await wallet.logCall(_id);
     return true;
   } else {
     return false;
@@ -406,83 +406,83 @@ commandReset = async(_msg) => {
 client.on('message', async(msg) => {
 
   if(msg.content === '/generate') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandGenerate(msg);
     }
   } else if(msg.content === '/balance') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandBalance(msg);
     }
   } else if(msg.content === '/leaderboard') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandLeaderboard(msg);
     }
   } else if(msg.content === '/deposit') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandDeposit(msg);
     }
   } else if(msg.content.split(" ")[0] === '/tip') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandTip(msg);
     }
   } else if(msg.content.split(" ")[0] === '/rain') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandRain(msg);
     }
   } else if(msg.content.split(" ")[0] === '/withdraw') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandWithdraw(msg);
     }
   }  else if(msg.content === '/stats') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandStats(msg);
     }
   } else if(msg.content === '/help') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandHelp(msg);
     }
   } else if(msg.content === '/commands') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandOveriew(msg);
     }
   } else if(msg.content === '/about') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandAbout(msg);
     }
   } else if(msg.content === '/approve') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandApprove(msg);
     }
   } else if(msg.content === '/reset') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return commandReset(msg);
     }
   } else if(msg.content === '/admin') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return msg.channel.send(randomAdmin[Math.floor(Math.random() * randomAdmin.length)])
     }
   } else if(msg.content === '/facts') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return msg.channel.send(randomFacts[Math.floor(Math.random() * randomFacts.length)])
     }
   } else if(msg.content === '/praise') {
-    if(await commandLimit(msg.author.username) == true){
-    await wallet.logCall(msg.author.username, "discord");
+    if(await commandLimit(msg.author.id) == true){
+    await wallet.logCall(msg.author.id);
     return msg.channel.send(randomPraise[Math.floor(Math.random() * randomPraise.length)])
     }
   }

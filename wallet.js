@@ -68,11 +68,13 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
 }
 
   module.exports.proofAccount = proofAccount = async(_username) => {
+    if(_username != undefined){
     var callingAccount = await getAccount(_username);
     if(callingAccount == undefined){
       return  '⚠️  Recipent or sender have not yet generated an account';
     } else {
       return callingAccount;
+    }
     }
    }
 
@@ -243,20 +245,20 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
    }
  }
 
-   module.exports.logCall = logCall = async(_username, _platform) => {
-    _platform = _platform.toString() + _username.toString();
+   module.exports.logCall = logCall = async(_chatid) => {
+     _chatid = "x" + _chatid;
     var timestampLimit = new Date();
     console.log("OLD", timestampLimit.getTime());
     await timestampLimit.setSeconds(timestampLimit.getSeconds() + 3);
     console.log("NEW", timestampLimit.getTime());
-      await admin.firestore().collection(_platform).add({
+      await admin.firestore().collection(_chatid).add({
         call: timestampLimit.getTime()
       })
     }
 
-    module.exports.getCall = getCall = async(_username, _platform) => {
-     _platform = _platform.toString() + _username.toString();
-     return await admin.firestore().collection(_platform)
+    module.exports.getCall = getCall = async(_chatid) => {
+      _chatid = "x" + _chatid;
+     return await admin.firestore().collection(_chatid)
        .orderBy('call', 'desc').limit(1).get()
        .then(async(state) => {
          var result;
@@ -280,7 +282,7 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
  }
 
  module.exports.isAddress = isAddress = async(_address) => {
-   if(_address.length == 42){
+   if(_address != undefined){
      return _web3.utils.isAddress(_address);
    } else {
      return false;
