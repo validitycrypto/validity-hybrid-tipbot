@@ -202,8 +202,8 @@ tbot.command('balance', async(ctx) => {
   } else {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
-    return ctx.replyWithMarkdown(`@${ctx.message.from.username}'s funds: ` + '`' + ` 💎 ${gas}`
-    + ' EGEM ' + ` 🌀 ${token}`  + ' VLDY' + '`');
+    return ctx.reply(`@${ctx.message.from.username}'s funds: ` + ` 💎 ${gas}`
+    + ' EGEM ' + ` 🌀 ${token}`  + ' VLDY');
     }
   }
 })
@@ -217,8 +217,8 @@ tbot.action('balance' , async(ctx) => {
   } else {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
-    return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username}'s funds: ` + '`' + ` 💎 ${gas}`
-    + ' EGEM ' + ` 🌀 ${token}` + ' VLDY' + '`');
+    return ctx.reply(`@${ctx.callbackQuery.from.username}'s funds: ` + ` 💎 ${gas}`
+    + ' EGEM ' + ` 🌀 ${token}` + ' VLDY');
     }
   }
 })
@@ -242,9 +242,9 @@ tbot.command('stats', async(ctx) => {
   await wallet.logCall(ctx.message.from.id);
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
-  return ctx.replyWithMarkdown(`@${ctx.message.from.username}'s stats:'`
-    + `\n💎 ` + '`' + `${gas[ctx.message.from.username]} EGEM `  + '`'
-    + `\n🌀 `  + '`' + `${token[ctx.message.from.username]} VLDY`  + '`');
+  return ctx.reply(`@${ctx.message.from.username}'s stats:'`
+    + `\n💎 ` + `${gas[ctx.message.from.username]} EGEM `
+    + `\n🌀 ` + `${token[ctx.message.from.username]} VLDY`);
   }
 })
 
@@ -253,9 +253,9 @@ tbot.action('stats', async(ctx) => {
   await wallet.logCall(ctx.callbackQuery.from.id);
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
-  return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username}'s stats:'`
-    `\n💎 ` + '`' + `${gas[ctx.callbackQuery.from.username]} EGEM `  + '`'
-    + `\n🌀 `  + '`' + `${token[ctx.callbackQuery.from.username]} VLDY`  + '`');
+  return ctx.reply(`@${ctx.callbackQuery.from.username}'s stats:'`
+    `\n💎 ` + `${gas[ctx.callbackQuery.from.username]} EGEM `
+    + `\n🌀 ` + `${token[ctx.callbackQuery.from.username]} VLDY`);
   }
 })
 
@@ -263,7 +263,7 @@ tbot.command('deposit', async(ctx) => {
   if(await commandLimit(ctx.message.from.id) == true){
   await wallet.logCall(ctx.message.from.id);
   var nuo = await wallet.viewAccount(ctx.message.from.username);
-  return ctx.replyWithMarkdown(`@${ctx.message.from.username} your depositing address is: ` + '`' + `${nuo}` + '`');
+  return ctx.reply(`@${ctx.message.from.username} your depositing address is: ` +  `${nuo}`);
   }
 })
 
@@ -271,7 +271,7 @@ tbot.action('deposit', async(ctx) => {
   if(await commandLimit(ctx.callbackQuery.from.id) == true){
   await wallet.logCall(ctx.callbackQuery.from.id);
   var nuo = await wallet.viewAccount(ctx.callbackQuery.from.username);
-  return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username} your depositing address is: ` + '`' + `${nuo}` + '`');
+  return ctx.reply(`@${ctx.callbackQuery.from.username} your depositing address is: ` + `${nuo}`);
   }
 })
 
@@ -301,7 +301,7 @@ tbot.command('withdraw', async(ctx) => {
           inputParameters[0], inputParameters[1],
           inputParameters[2]);
           if(tx != undefined){
-            return ctx.replyWithMarkdown(
+            return ctx.reply(
               `@${ctx.message.from.username} withdrew to ` + ' `'
               + `${inputParameters[0]}` + '`' +  ' of ' + ' `'
               + `${inputParameters[1]} ${inputParameters[2]}`
@@ -326,12 +326,12 @@ tbot.command('generate', async(ctx) => {
     if(ctx.message.from.username != undefined){
       var address = await wallet.createAccount(ctx.message.from.username, ctx.message.from.id);
       if(address == undefined){
-        return ctx.replyWithMarkdown(`🚫 @${ctx.message.from.username} ***you have already generated an account***`);
+        return ctx.reply(`🚫 @${ctx.message.from.username} you have already generated an account`);
       } else if(address != undefined) {
-        return ctx.replyWithMarkdown(`@${ctx.message.from.username} your account address is: ` + '`' + `${address}` + '`');
+        return ctx.reply(`@${ctx.message.from.username} your account address is: ` + '`' + `${address}` + '`');
     }
 } else {
-  return ctx.replyWithMarkdown('⚠️ Please set a telegram username');
+  return ctx.reply('⚠️ Please set a telegram username');
   }
  }
 })
@@ -342,12 +342,12 @@ tbot.action('generate', async(ctx) => {
   if(ctx.callbackQuery.from.username != undefined){
     var address = await wallet.createAccount(ctx.callbackQuery.from.username, ctx.callbackQuery.from.id);
     if(address == undefined){
-      return ctx.replyWithMarkdown(`🚫 @${ctx.callbackQuery.from.username} ***you have already generated an account***`);
+      return ctx.reply(`🚫 @${ctx.callbackQuery.from.username} you have already generated an account`);
     } else if(address != undefined) {
-      return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username} your account address is: ` + '`' + `${address}` + '`');
+      return ctx.reply(`@${ctx.callbackQuery.from.username} your account address is: ` + '`' + `${address}` + '`');
     }
   } else {
-    return ctx.replyWithMarkdown('⚠️ Please set a telegram username');
+    return ctx.reply('⚠️ Please set a telegram username');
   }
  }
 })
@@ -412,7 +412,7 @@ tbot.command('/reset', async(ctx) => {
 tbot.action('praise', async(ctx) => {
   if(await commandLimit(ctx.callbackQuery.from.id) == true){
   await wallet.logCall(ctx.callbackQuery.from.id);
-  return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username} says ` + `"` + randomPraise[Math.floor(Math.random() * randomPraise.length)] + `"`);
+  return ctx.reply(`@${ctx.callbackQuery.from.username} says ` + `"` + randomPraise[Math.floor(Math.random() * randomPraise.length)] + `"`);
 }
 })
 
@@ -436,7 +436,7 @@ tbot.command('/tip', async(ctx) => {
   var inputParameters = ctx.message.text.split("/tip ").pop().split(" ");
 
   if(inputParameters.length != 3){
-    return ctx.replyWithMarkdown("⚠️  Incorrect parameter amount");
+    return ctx.reply("⚠️  Incorrect parameter amount");
   }
 
   var targetUser = inputParameters[0].replace('@', '');
@@ -457,9 +457,9 @@ tbot.command('/tip', async(ctx) => {
             var tx = await wallet.tipUser("telegram",
             callingUser, calling0x, recieving0x,
             inputParameters[1], inputParameters[2]);
-            return ctx.replyWithMarkdown(
-              `@${callingUser} tipped @${targetUser} of ` + ' `' +
-              `${inputParameters[1]} ${inputParameters[2]}` + ' `' +  '🎉',
+            return ctx.reply(
+              `@${callingUser} tipped @${targetUser} of ` +
+              `${inputParameters[1]} ${inputParameters[2]}` + ' 🎉',
               Extra.markup(transactionModal(tx)))
           } else {
             return ctx.replyWithMarkdown(balanceValidity);
@@ -499,8 +499,8 @@ tbot.action('fire', async(ctx) => {
             callingUser, calling0x, recieving0x,
             inputParameters[5], inputParameters[6]);
             return ctx.replyWithMarkdown(
-              `@${callingUser} tipped @${targetUser} of ` + ' `' +
-              `${inputParameters[5]} ${inputParameters[6]}` + ' `' +  '🎉',
+              `@${callingUser} tipped @${targetUser} of ` +
+              `${inputParameters[5]} ${inputParameters[6]}` +  ' 🎉',
               Extra.markup(transactionModal(tx)))
           } else {
             return ctx.answerCbQuery(balanceValidity);
@@ -523,7 +523,7 @@ tbot.command('/rain', async(ctx) => {
   var inputParameters = ctx.message.text.split("/rain ").pop().split(" ");
 
   if(inputParameters.length != 2){
-    return ctx.replyWithMarkdown("⚠️  Incorrect parameter amount");
+    return ctx.reply("⚠️  Incorrect parameter amount");
   }
 
   var callingUser = ctx.message.from.username;
@@ -549,13 +549,13 @@ tbot.command('/rain', async(ctx) => {
                 finalParse = finalParse + `@${rainedUsers.users[x]}`;
                 x++;
               }
-              return ctx.replyWithMarkdown(
+              return ctx.reply(
                 `@${callingUser} rained `
                 + `${finalParse}` + ` of ` + ' `' + `${inputParameters[0]} `
                 +`${inputParameters[1]}` + ' `' +  '💥',
                 Extra.markup(withdrawModal(rainedUsers.tx)));
             } else if(rainedUsers.users.length == 0){
-              return ctx.replyWithMarkdown('⚠️ No users active to rain');
+              return ctx.reply('⚠️ No users active to rain');
             }
           } else {
             return ctx.replyWithMarkdown(balanceValidity);
