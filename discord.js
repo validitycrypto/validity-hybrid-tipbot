@@ -366,6 +366,8 @@ commandApprove= async(_msg) => {
   var calling0x = await wallet.proofAccount(callingUser);
 
   if(await wallet.isAddress(calling0x) == true){
+    var gas = await wallet.gasBalance(calling0x);
+    if(gas > 0.05){
      var tx = await wallet.approveTokens(calling0x);
      if(tx != undefined){
        const embed = new Discord.RichEmbed()
@@ -377,6 +379,9 @@ commandApprove= async(_msg) => {
      } else {
        return _msg.channel.send('⚠️ Error could not approve');
      }
+   } else {
+     return _msg.channel.send('⚠️ No gas to approve');
+   }
   } else {
     return _msg.channel.send(calling0x);
   }
@@ -387,6 +392,8 @@ commandReset = async(_msg) => {
   var calling0x = await wallet.proofAccount(callingUser);
 
   if(await wallet.isAddress(calling0x) == true){
+    var gas = await wallet.gasBalance(calling0x);
+    if(gas > 0.05){
      var tx = await wallet.resetApprove(calling0x);
      if(tx != undefined){
        const embed = new Discord.RichEmbed()
@@ -398,6 +405,9 @@ commandReset = async(_msg) => {
      } else {
        return _msg.channel.send('⚠️ Error could not reset ');
      }
+   } else {
+     return _msg.channel.send('⚠️ No gas to approve');
+   }
   } else {
     return _msg.channel.send(calling0x);
   }
