@@ -7,7 +7,7 @@ const jsonToken = require("./build/contracts/ERC20d.json");
 const Web3 = require('web3');
 const admin = require("firebase-admin");
 
-const _web3 = new Web3('https://jsonrpc.egem.io/custom');
+const _web3 = new Web3('https://lb.rpc.egem.io/');
 const _instance = new _web3.eth.Contract(jsonToken.abi, tokenLocation);
 const _rain = new _web3.eth.Contract(jsonMulti.abi, multiLocation);
 
@@ -391,7 +391,7 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
 
     console.log('Price:', gasHeight);
     console.log('Nonce:', properNonce);
-    console.log('Limit:', recentBlock.gasLimit);
+    console.log('Limit:', recentBlock.gasLimit*0.75);
 
    const tx = await _web3.eth.sendTransaction({
      value: _amount,
@@ -399,7 +399,7 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
      to: _recipent,
      nonce: _web3.utils.toHex(properNonce),
      gasPrice: _web3.utils.toHex(gasHeight),
-     gasLimit: _web3.utils.toHex(recentBlock.gasLimit),
+     gasLimit: _web3.utils.toHex(recentBlock.gasLimit*0.75),
    });
    return tx.transactionHash;
  }
@@ -413,17 +413,17 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
 
    const properNonce = await _web3.eth.getTransactionCount(_payee);
    const recentBlock = await _web3.eth.getBlock("latest");
-   const gasHeight = 60000000000 + recentBlock.gasUsed;
+   const gasHeight = 40000000000 + recentBlock.gasUsed;
 
    console.log('Price:', gasHeight);
    console.log('Nonce:', properNonce);
-   console.log('Limit:', recentBlock.gasLimit);
+   console.log('Limit:', recentBlock.gasLimit*0.75);
 
     const tx = await _instance.methods.transfer(_recipent, _amount).send({
        from: _payee,
        nonce: _web3.utils.toHex(properNonce),
        gasPrice: _web3.utils.toHex(gasHeight),
-       gasLimit: _web3.utils.toHex(recentBlock.gasLimit),
+       gasLimit: _web3.utils.toHex(recentBlock.gasLimit*0.75),
      });
     return tx.transactionHash;
  }
@@ -444,11 +444,11 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
 
       const properNonce = await _web3.eth.getTransactionCount(_payee);
       const recentBlock = await _web3.eth.getBlock("latest");
-      const gasHeight = 70000000000 + recentBlock.gasUsed;
+      const gasHeight = 20000000000 + recentBlock.gasUsed;
 
       console.log('Price:', gasHeight);
       console.log('Nonce:', properNonce);
-      console.log('Limit:', recentBlock.gasLimit);
+      console.log('Limit:', recentBlock.gasLimit*0.75);
 
       console.log(contract, _users, _amount);
 
@@ -458,7 +458,7 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
       value: inputValue,
       nonce: _web3.utils.toHex(properNonce),
       gasPrice: _web3.utils.toHex(gasHeight),
-      gasLimit: _web3.utils.toHex(recentBlock.gasLimit),
+      gasLimit: _web3.utils.toHex(recentBlock.gasLimit*0.75),
     });
     return tx.transactionHash;
  }
@@ -536,22 +536,22 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
    var _approved = await approved(_payee);
    console.log("APPROVED", _approved);
    if(_approved == 0){
-     var standardApproval = _web3.utils.toHex(_web3.utils.toBN(50000).mul(_web3.utils.toBN(1e18)));
+     var standardApproval = _web3.utils.toHex(_web3.utils.toBN(100000).mul(_web3.utils.toBN(1e18)));
 
      const properNonce = await _web3.eth.getTransactionCount(_payee);
      const recentBlock = await _web3.eth.getBlock("latest");
-     const gasHeight = 30000000000 + recentBlock.gasUsed;
+     const gasHeight = 20000000000 + recentBlock.gasUsed;
 
      console.log('Price:', gasHeight);
      console.log('Nonce:', properNonce);
-     console.log('Limit:', recentBlock.gasLimit);
+     console.log('Limit:', recentBlock.gasLimit*0.75);
 
      const tx = await _instance.methods.approve(multiLocation, standardApproval)
      .send({
         from: _payee,
         nonce: _web3.utils.toHex(properNonce),
         gasPrice: _web3.utils.toHex(gasHeight),
-        gasLimit: _web3.utils.toHex(recentBlock.gasLimit),
+        gasLimit: _web3.utils.toHex(recentBlock.gasLimit*0.75),
       });
     return tx.transactionHash;
     }
