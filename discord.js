@@ -55,14 +55,14 @@ const helpInfo =
     '\n`Command parameters`'
     +'\n`<user>` - An active telegram username, eg: @xGozzy'
     +'\n`<amount>` - The amount one wishes to tip, eg: `100`'
-    +'\n`<asset>` - The asset one wishes to tip, eg: `EGEM` or `VLDY`'
+    +'\n`<asset>` - The asset one wishes to tip, eg: `ETH` or `VLDY`'
     +'\n`<address>` - The address one wishes to withdraw to, eg:`0xA5d505F9EfA7aFC13C82C1e87E12F0562A5ed78f`'
     +'\n\n`Command format`'
     +'\nIn order to execute transactional based operations corrrectly, one must follow the format of the specified command.'
     +' If we look at our tip function we can see that it requires 3 parameters, an amount, a user and the chosen asset:'
     +'\n`/tip <user> <amount> <asset>`'
     +'\nIf we were to actually fill in the parameters it would look like so:'
-    +'\n`/tip @xGozzy 1 EGEM`'
+    +'\n`/tip @xGozzy 1 ETH`'
     +'\n\nIf one was to use the rain command which format is declared as:'
     +'\n`/rain <amount> <asset>`'
     +'\nIt would be called as so:'
@@ -70,18 +70,18 @@ const helpInfo =
     +'\n\nThen finally the withdraw command:'
     +'\n`/withdraw <address> <amount> <asset>`'
     +'\nWould look like:'
-    +'\n`/withdraw 0xA5d505F9EfA7aFC13C82C1e87E12F0562A5ed78f 1 EGEM`'
+    +'\n`/withdraw 0xA5d505F9EfA7aFC13C82C1e87E12F0562A5ed78f 1 ETH`'
 
 const aboutInfo =
     '\n`Fees and gas dependency`'
-    +'\nIn order to send transactions, one must have a EGEM balance to pay compensation for the transaction fee.'
-    +' This means one cannot tip VLDY without an active EGEM balance.'
-    +'\n\nAs this bot is not funded, there will be a fee implementation of ***1 EGEM per tip*** in order to allow it be'
+    +'\nIn order to send transactions, one must have a ETH balance to pay compensation for the transaction fee.'
+    +' This means one cannot tip VLDY without an active ETH balance.'
+    +'\n\nAs this bot is not funded, there will be a fee implementation of ***1 ETH per tip*** in order to allow it be'
     +' hosted on a virtual machine for 24/7 uptime and swift responses. A % of the fees will be split among the core team'
     +' and a % will be isolated for community events.'
     +'\n\n`Security disclaimer`'
     +'\nThis bot is ***centralised*** and is not ultimately secure for storing large amount of assets, please use an associated'
-    +' EtherGem wallet to store your funds securely: \nhttps://myegemwallet.com/'
+    +' Ethereum wallet to store your funds securely: \nhttps://myetherwallet.com/'
     +'\n\n`Users must take it into their own responsibilities to withdraw their'
     +' own balances frequently. The Validity team is not responsibile for any losses.`'
     +'\n\n`Source Code`'
@@ -91,10 +91,9 @@ const aboutInfo =
     +' https://github.com/validitycrypto/validity-hybrid-tipbot';
 
 module.exports.initialiseDiscord = initialiseDiscord = async(_token) => {
-  await client.login(_token);
+await client.login(_token);
 
 client.on('ready', async() => {
-  await wallet.initialiseDatabase();
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
@@ -127,8 +126,8 @@ commandBalance = async(_msg) => {
   } else {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
-    return _msg.channel.send(`<@!${_msg.author.id}>` + ' your funds are: ' + '<:ethergem:490221755756183554>' + '`' + ` ${gas}`
-    + ` EGEM ` + '`' + ' <:validity:490221401232506882> ' + '`' + ` ${token}` + ` VLDY` + '`');
+    return _msg.channel.send(`<@!${_msg.author.id}>` + ' your funds are: ' + '<:ethereum:490221755756183554>' + '`' + ` ${gas}`
+    + ` ETH ` + '`' + ' <:validity:490221401232506882> ' + '`' + ` ${token}` + ` VLDY` + '`');
   }
 }
 
@@ -149,12 +148,12 @@ commandLeaderboard = async(_msg) => {
   const embed = new Discord.RichEmbed()
       .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
       .setDescription(
-        '\n<:ethergem:490221755756183554> **EtherGem** <:ethergem:490221755756183554>'
-        +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + ' EGEM`'
-        +'\n***2:***  ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + ' EGEM`'
-        +'\n***3:***  ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + ' EGEM`'
-        +'\n***4:***  ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + ' EGEM`'
-        +'\n***5:***  ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + ' EGEM`'
+        '\n<:Ethereum:490221755756183554> **Ethereum** <:Ethereum:490221755756183554>'
+        +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + ' ETH`'
+        +'\n***2:***  ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + ' ETH`'
+        +'\n***3:***  ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + ' ETH`'
+        +'\n***4:***  ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + ' ETH`'
+        +'\n***5:***  ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + ' ETH`'
 
         +'\n\n<:validity:490221401232506882> **Validity** <:validity:490221401232506882>'
         +'\n\n***1:***  ' + `@${token[0]}` + ' ***-*** ' + '`' + `${token[token[0]]}` + ' VLDY`'
@@ -200,7 +199,7 @@ commandTip = async(_msg) => {
                     `${inputParameters[0]} of ` + ' `'
                     + `${inputParameters[1]} ${inputParameters[2]}` + ' `' +  ' 🎉'
                   )
-                  .setURL(`https://blockchain.egem.io/txes?input=${tx}`)
+                  .setURL(`https://ropsten.etherscan.io/tx/${tx}`)
               return _msg.channel.send({ embed });
             } else {
               return _msg.channel.send(balanceValidity);
@@ -254,7 +253,7 @@ commandRain = async(_msg) => {
                       + `${finalParse}` + ` of ` + ' `' + `${inputParameters[0]} `
                       +`${inputParameters[1]}` + ' `' +  '💥'
                     )
-                    .setURL(`https://blockchain.egem.io/txes?input=${rainedUsers.tx}`)
+                    .setURL(`https://ropsten.etherscan.io/tx/${rainedUsers.tx}`)
                 return _msg.channel.send({ embed });
               } else {
                 return _msg.channel.send('⚠️ No users active to rain');
@@ -278,7 +277,7 @@ commandWithdraw = async(_msg) => {
   if(inputParameters.length != 3){
     return _msg.channel.send("⚠️  Incorrect parameter amount");
   } else if(!wallet.isAddress(target0x)){
-    return _msg.channel.send("⚠️  Incorrect EtherGem address");
+    return _msg.channel.send("⚠️  Incorrect Ethereum address");
   }
 
   if(wallet.isAddress(calling0x)){
@@ -301,7 +300,7 @@ commandWithdraw = async(_msg) => {
                     + `${inputParameters[0]}` + '`' +  ' of ' + ' `'
                     + `${inputParameters[1]} ${inputParameters[2]}`
                     + ' `' +  ' 📤')
-                    .setURL(`https://blockchain.egem.io/txes?input=${tx}`)
+                    .setURL(`https://ropsten.etherscan.io/tx/${tx}`)
               return _msg.channel.send({ embed });
           }
         } else {
@@ -321,7 +320,7 @@ commandStats = async(_msg) => {
   const embed = new Discord.RichEmbed()
       .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
       .setDescription(
-      `<:ethergem:490221755756183554> ` + '`' + `${gas[_msg.author.username]} EGEM `  + '`'
+      `<:Ethereum:490221755756183554> ` + '`' + `${gas[_msg.author.username]} ETH `  + '`'
       + `\n <:validity:490221401232506882> `  + '`' + `${token[_msg.author.username]} VLDY`  + '`')
       .setAuthor(`⭐ ${_msg.author.username}'s stats`, _msg.author.displayAvatarURL)
   return _msg.channel.send({ embed });
@@ -374,7 +373,7 @@ commandApprove= async(_msg) => {
            .setTitle("🔗 Transaction")
            .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
            .setDescription('Successfully approved')
-           .setURL(`https://blockchain.egem.io/txes?input=${tx}`)
+           .setURL(`https://ropsten.etherscan.io/tx/${tx}`)
        return _msg.channel.send({ embed });
      } else {
        return _msg.channel.send('⚠️ Error could not approve');
@@ -400,7 +399,7 @@ commandReset = async(_msg) => {
            .setTitle("🔗 Transaction")
            .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
            .setDescription('Successfully reset')
-           .setURL(`https://blockchain.egem.io/txes?input=${tx}`)
+           .setURL(`https://ropsten.etherscan.io/tx/${tx}`)
        return _msg.channel.send({ embed });
      } else {
        return _msg.channel.send('⚠️ Error could not reset ');

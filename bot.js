@@ -2,20 +2,20 @@ const { initialiseTelegram }  = require('./telegram.js');
 const { initialiseDatabase }  = require('./wallet.js');
 const { initialiseDiscord }  = require('./discord.js');
 
-var serviceAccount = require("./FirebasePrivateKey.json");
+var serviceAccount = require("./serviceFile.json");
 const admin = require("firebase-admin");
 
 const discordToken = "";
 const telegramToken = "";
 const firebaseAuth = {
+  credential: admin.credential.cert(serviceAccount),
   apiKey: "",
   authDomain: "",
   databaseURL: "",
   projectId: "",
   storageBucket: "",
   messagingSenderId: "",
-  credential: ,
-  databaseURL: ""
+  appId: "",
 };
 
 initialiseServer = async() => {

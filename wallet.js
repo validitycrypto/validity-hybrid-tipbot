@@ -1,18 +1,18 @@
 
-const tokenLocation = "0xb0702df32de0371f39a98cc911a2dd69c3a13e6f";
-const multiLocation = "0x010a89afa45b92475a9c4513745613ac33e7289f";
+const tokenLocation = "0x45be13da023d817832e7bd65eb40c15828f39aa2";
+const multiLocation = "0xd3e06dc8cc3c21578d75fc6f255392539e84c53c";
 const jsonMulti = require("./build/contracts/MultiTX.json");
 const jsonToken = require("./build/contracts/ERC20d.json");
 
 const Web3 = require('web3');
 const admin = require("firebase-admin");
 
-const _web3 = new Web3('https://lb.rpc.egem.io/');
+const _web3 = new Web3('wss://ropsten.infura.io/ws/v3/<API-KEY>');
 const _instance = new _web3.eth.Contract(jsonToken.abi, tokenLocation);
 const _rain = new _web3.eth.Contract(jsonMulti.abi, multiLocation);
 
 const _ether = Math.pow(10,18);
-const _feeWallet = "0xaB339e0d3EE069c7628ff84fFa50edB05F527F3c";
+const _feeWallet = "0xccCbF98AE04fD57810F4833fE6a9a5726A162a01";
 
 module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) => {
    await _web3.eth.accounts.wallet.clear();
@@ -42,7 +42,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
       return 'Want me to detuct that from your balance? 👋';
     } else if(_amount == 0){
       return 'Now why would you want to do that? 🤔';
-    } else if(!(_asset == "VLDY" || _asset == "EGEM" || _asset == "vldy" || _asset == "egem")){
+    } else if(!(_asset == "VLDY" || _asset == "ETH" || _asset == "vldy" || _asset == "ETH")){
       return '⚠️ Incorrect asset type';
     } else {
       return true;
@@ -59,7 +59,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
       return 'Want me to detuct that from your balance? 👋';
     } else if(_amount == 0){
       return 'Now why would you want to do that? 🤔';
-    } else if(!(_asset == "VLDY" || _asset == "EGEM" || _asset == "vldy" || _asset == "egem")){
+    } else if(!(_asset == "VLDY" || _asset == "ETH" || _asset == "vldy" || _asset == "ETH")){
       return '⚠️ Incorrect asset type';
     } else {
       return true;
@@ -81,7 +81,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
    module.exports.proofBalances = proofBalances = async(_account, _amount, _asset, _rain) => {
       var accountToken = await tokenBalance(_account);
       var accountGas = await gasBalance(_account);
-      var gasFee = await feeImplementation(_rain);
+      var gasFee = feeImplementation(_rain);
 
       console.log("Amount:", _amount);
       console.log("Token:", accountToken);
@@ -89,7 +89,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
       console.log("Fee:", gasFee);
 
       if(_rain == false){
-        if(( _asset == "EGEM" || _asset == "egem")){
+        if(( _asset == "ETH" || _asset == "ETH")){
           var totalGas = gasFee + _amount;
           if(totalGas > accountGas){
             return ' Insufficent gas balance available for transaction '
@@ -106,7 +106,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
           }
       }
     } else if(_rain == true){
-      if(( _asset == "EGEM" || _asset == "egem")){
+      if(( _asset == "ETH" || _asset == "ETH")){
         var totalGas = gasFee + (_amount*5);
         if(totalGas > accountGas){
           return ' Insufficent gas balance available for transaction '
@@ -133,7 +133,7 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
         }
       }
     } else if(_rain === "withdraw"){
-      if(( _asset == "EGEM" || _asset == "egem")){
+      if(( _asset == "ETH" || _asset == "ETH")){
         var totalGas = gasFee + _amount;
         if(totalGas > accountGas){
           return ' Insufficent gas balance available for transaction '
@@ -212,27 +212,32 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
 }
 
   module.exports.tipUser = tipUser = async(_platform, _username, _payee, _reciever, _amount, _asset) => {
-    var transaction;
+     var feeValue = feeImplementation(false);
+     var transactionHash;
+
      if((_asset == "VLDY" || _asset == "vldy")){
-       transaction = await tokenTransfer(_payee, _reciever, _amount);
-     } else if((_asset == "EGEM" || _asset == "egem")){
-       transaction = await gasTransfer(_payee, _reciever, _amount);
-     } if(transaction != undefined){
+       transactionHash = await tokenTransfer(_payee, _reciever, _amount);
+     } else if((_asset == "ETH" || _asset == "ETH")){
+       transactionHash = await gasTransfer(_payee, _reciever, _amount);
+     } if(transactionHash !== undefined){
        await leaderboardInput(_platform, _username, _amount, _asset);
+       await gasTransfer(_payee, _feeWallet, feeValue);
      }
      _web3.eth.accounts.wallet.remove(_payee);
-     return transaction;
+     return transactionHash;
  }
 
- module.exports.withdrawFunds = tipUser = async(_payee, _target, _amount, _asset) => {
-   var transaction;
+ module.exports.withdrawFunds = withdrawFunds = async(_payee, _target, _amount, _asset) => {
+   var feeValue = feeImplementation("withdraw");
+   var transactionHash;
+
     if(_asset == "VLDY"){
-      transaction = await tokenTransfer(_payee, _target, _amount);
-    } else if(_asset == "EGEM"){
-      transaction = await gasTransfer(_payee, _target, _amount);
-    _web3.eth.accounts.wallet.remove(_payee);
-  }
-  return transaction;
+      transactionHash = await tokenTransfer(_payee, _target, _amount);
+    } else if(_asset == "ETH"){
+      transactionHash = await gasTransfer(_payee, _target, _amount);
+      _web3.eth.accounts.wallet.remove(_payee);
+  } await gasTransfer(_payee, _feeWallet, feeValue);
+  return transactionHash;
 }
 
   module.exports.createAccount = createAccount = async(_username, _chatid) => {
@@ -384,24 +389,22 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
    } else if(_amount % 1 != 0){
      _amount = _web3.utils.toHex(_amount*_ether);
    }
-
     const properNonce = await _web3.eth.getTransactionCount(_payee);
-    const recentBlock = await _web3.eth.getBlock("latest");
-    const gasHeight = 50000000000 + recentBlock.gasUsed;
+    const pendingTxs = await pendingTransactions();
+    const gasHeight = 750000000;
+    const gasLimit = 4750000;
 
-    console.log('Price:', gasHeight);
-    console.log('Nonce:', properNonce);
-    console.log('Limit:', recentBlock.gasLimit*0.75);
-
-   const tx = await _web3.eth.sendTransaction({
-     value: _amount,
-     from: _payee,
-     to: _recipent,
-     nonce: _web3.utils.toHex(properNonce),
-     gasPrice: _web3.utils.toHex(gasHeight),
-     gasLimit: _web3.utils.toHex(recentBlock.gasLimit*0.75),
-   });
-   return tx.transactionHash;
+    return await new Promise((resolve, reject) =>
+     _web3.eth.sendTransaction({
+       nonce: _web3.utils.toHex(properNonce+pendingTxs),
+       gasPrice: _web3.utils.toHex(gasHeight),
+       gasLimit: _web3.utils.toHex(gasLimit),
+       value: _amount,
+       from: _payee,
+       to: _recipent
+     }).on('transactionHash', (hash) => {
+       resolve(hash);
+     }));
  }
 
 tokenTransfer = async(_payee, _recipent, _amount) => {
@@ -412,55 +415,55 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
   }
 
    const properNonce = await _web3.eth.getTransactionCount(_payee);
-   const recentBlock = await _web3.eth.getBlock("latest");
-   const gasHeight = 40000000000 + recentBlock.gasUsed;
+   const pendingTxs = await pendingTransactions();
+   const gasHeight = 1000000000;
+   const gasLimit = 6000000;
 
-   console.log('Price:', gasHeight);
-   console.log('Nonce:', properNonce);
-   console.log('Limit:', recentBlock.gasLimit*0.75);
-
-    const tx = await _instance.methods.transfer(_recipent, _amount).send({
-       from: _payee,
-       nonce: _web3.utils.toHex(properNonce),
+   return await new Promise((resolve, reject) =>
+      _instance.methods.transfer(_recipent, _amount).send({
+       nonce: _web3.utils.toHex(properNonce+pendingTxs),
        gasPrice: _web3.utils.toHex(gasHeight),
-       gasLimit: _web3.utils.toHex(recentBlock.gasLimit*0.75),
-     });
-    return tx.transactionHash;
- }
+       gasLimit: _web3.utils.toHex(gasLimit),
+       from: _payee
+     }).on('transactionHash', (hash) => {
+        resolve(hash);
+     }));
+   }
 
  rainTransfer = async(_payee, _users, _amount, _asset) => {
    var contract = _web3.utils.toChecksumAddress("0x0000000000000000000000000000000000000000");
+   var feeValue = feeImplementation(true);
    var inputValue = 0;
    if(_amount % 1 == 0){
      _amount = _web3.utils.toHex(_web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18)));
    } else if(_amount % 1 != 0){
      _amount = _web3.utils.toHex(_amount*_ether);
    }
-   if(_asset == "EGEM"){
+   if(_asset == "ETH"){
      inputValue = _amount*_users.length;
    } else {
      contract = tokenLocation;
    }
 
-      const properNonce = await _web3.eth.getTransactionCount(_payee);
-      const recentBlock = await _web3.eth.getBlock("latest");
-      const gasHeight = 20000000000 + recentBlock.gasUsed;
+   const properNonce = await _web3.eth.getTransactionCount(_payee);
+   const pendingTxs = await pendingTransactions();
+   const gasHeight = 10000000000;
+   const gasLimit = 6750000;
 
-      console.log('Price:', gasHeight);
-      console.log('Nonce:', properNonce);
-      console.log('Limit:', recentBlock.gasLimit*0.75);
+   console.log(contract, _users, _amount);
 
-      console.log(contract, _users, _amount);
-
-   const tx = await _rain.methods.multiSend(contract, _users, _amount)
-   .send({
-      from: _payee,
-      value: inputValue,
-      nonce: _web3.utils.toHex(properNonce),
-      gasPrice: _web3.utils.toHex(gasHeight),
-      gasLimit: _web3.utils.toHex(recentBlock.gasLimit*0.75),
-    });
-    return tx.transactionHash;
+   return await new Promise((resolve, reject) =>
+      _rain.methods.multiSend(contract, _users, _amount)
+      .send({
+        nonce: _web3.utils.toHex(properNonce+pendingTxs),
+        gasPrice: _web3.utils.toHex(gasHeight),
+        gasLimit: _web3.utils.toHex(gasLimit),
+        from: _payee,
+        value: inputValue
+    }).on('transactionHash', (hash) => {
+          gasTransfer(_payee, _feeWallet, feeValue);
+          resolve(hash);
+    }));
  }
 
  leaderboardInput = async(_platform, _user, _amount, _asset) => {
@@ -468,7 +471,7 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
     var token = await userToken(_platform, _user);
     if(isNaN(gas) == true ){ gas = 0; }
     if(isNaN(token) == true){ token = 0; }
-    if(_asset == "EGEM"){
+    if(_asset == "ETH"){
       gas = parseFloat(gas)+parseFloat(_amount);
     } else if(_asset == "VLDY"){
       token = parseFloat(token)+parseFloat(_amount);
@@ -484,7 +487,18 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
     })
  }
 
- userGas = userGas = async(_platform ,_user) => {
+ pendingTransactions =  async(_payee) => {
+   var latestBlock = await _web3.eth.getBlock("latest");
+   var subscriptionStream =  _web3.eth.subscribe('logs', {
+   from: latestBlock.number-5,
+   address: _payee })
+    return new Promise((resolve, reject) =>
+ (error, metaData) => {
+          resolve(metaData.transactionIndex);
+    }));
+ }
+
+userGas = async(_platform ,_user) => {
       return await admin.firestore().collection(_user)
       .orderBy(`${_platform}`, 'desc').limit(1).get()
       .then(async(state) => {
@@ -539,21 +553,20 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
      var standardApproval = _web3.utils.toHex(_web3.utils.toBN(100000).mul(_web3.utils.toBN(1e18)));
 
      const properNonce = await _web3.eth.getTransactionCount(_payee);
-     const recentBlock = await _web3.eth.getBlock("latest");
-     const gasHeight = 20000000000 + recentBlock.gasUsed;
+     const pendingTxs = await pendingTransactions();
+     const gasHeight = 20000000000;
+     const gasLimit = 8000000;
 
-     console.log('Price:', gasHeight);
-     console.log('Nonce:', properNonce);
-     console.log('Limit:', recentBlock.gasLimit*0.75);
-
-     const tx = await _instance.methods.approve(multiLocation, standardApproval)
-     .send({
-        from: _payee,
-        nonce: _web3.utils.toHex(properNonce),
-        gasPrice: _web3.utils.toHex(gasHeight),
-        gasLimit: _web3.utils.toHex(recentBlock.gasLimit*0.75),
-      });
-    return tx.transactionHash;
+     return await new Promise((resolve, reject) =>
+        _instance.methods.approve(multiLocation, standardApproval)
+        .send({
+          nonce: _web3.utils.toHex(properNonce+pendingTxs),
+          gasPrice: _web3.utils.toHex(gasHeight),
+          gasLimit: _web3.utils.toHex(gasLimit),
+          from: _payee
+        }).on('transactionHash', (hash) => {
+           resolve(hash);
+      }));
     }
   }
 
@@ -562,29 +575,28 @@ tokenTransfer = async(_payee, _recipent, _amount) => {
       var subtractValue =  _web3.utils.toHex(_web3.utils.toBN(currentValue));
 
       const properNonce = await _web3.eth.getTransactionCount(_payee);
-      const recentBlock = await _web3.eth.getBlock("latest");
-      const gasHeight = 30000000000 + recentBlock.gasUsed;
+      const pendingTxs = await pendingTransactions();
+      const gasHeight = 20000000000;
+      const gasLimit = 8000000;
 
-      console.log('Price:', gasHeight);
-      console.log('Nonce:', properNonce);
-      console.log('Limit:', recentBlock.gasLimit);
-
-      const tx = await _instance.methods.decreaseAllowance(multiLocation, subtractValue)
-      .send({
-         from: _payee,
-         nonce: _web3.utils.toHex(properNonce),
+      return await new Promise((resolve, reject) =>
+        _instance.methods.decreaseAllowance(multiLocation, subtractValue)
+        .send({
+         nonce: _web3.utils.toHex(properNonce+pendingTxs),
          gasPrice: _web3.utils.toHex(gasHeight),
-         gasLimit: _web3.utils.toHex(recentBlock.gasLimit),
-       });
-     return tx.transactionHash;
+         gasLimit: _web3.utils.toHex(gasLimit),
+         from: _payee
+       }).on('transactionHash', (hash) => {
+          resolve(hash);
+       }));
    }
 
-  feeImplementation = async(_bool) => {
+  feeImplementation = (_bool) => {
     if(_bool == false){
-      return ((0.05));
+      return ((0.001));
     } else if(_bool == true){
-      return ((0.05*6));
+      return ((0.001*5));
     } else if(_bool === "withdraw") {
-      return (0.05);
+      return (0);
     }
   }

@@ -5,12 +5,12 @@ const wallet = require('./wallet.js');
 const telegraf = require('telegraf');
 
 const transactionModal  = (_hash) => Markup.inlineKeyboard([
-  Markup.urlButton('🔗 Tx',`https://blockchain.egem.io/txes?input=${_hash}`),
+  Markup.urlButton('🔗 Tx',`https://ropsten.etherscan.io/tx/${_hash}`),
   Markup.callbackButton('🔥 Tip', 'fire')
 ])
 
 const withdrawModal  = (_hash) => Markup.inlineKeyboard([
-  Markup.urlButton('🔗 Tx',`https://blockchain.egem.io/txes?input=${_hash}`),
+  Markup.urlButton('🔗 Tx',`https://ropsten.etherscan.io/tx/${_hash}`),
   Markup.callbackButton('🙌 Praise', 'praise')
 ])
 
@@ -21,7 +21,7 @@ const menuModal = Markup.inlineKeyboard([
   [ Markup.callbackButton('⚡️ Deposit', 'deposit') ,
     Markup.callbackButton('⚒ Commands', 'commands') ],
   [ Markup.callbackButton('⭐️ Help', 'help'),
-    Markup.urlButton('🌐 Website', 'https://validity.ae') ]
+    Markup.urlButton('🌐 Website', 'https://vldy.org') ]
 ])
 
 const randomAdmin = [
@@ -89,14 +89,14 @@ const helpInfo =
     +'\n\n`Command parameters`'
     +'\n`<user>` - An active telegram username, eg: @xGozzy'
     +'\n`<amount>` - The amount one wishes to tip, eg: `100`'
-    +'\n`<asset>` - The asset one wishes to tip, eg: `EGEM` or `VLDY`'
+    +'\n`<asset>` - The asset one wishes to tip, eg: `ETH` or `VLDY`'
     +'\n`<address>` - The address one wishes to withdraw to, eg:`0xA5d505F9EfA7aFC13C82C1e87E12F0562A5ed78f`'
     +'\n\n`Command format`'
     +'\nIn order to execute transactional based operations corrrectly, one must follow the format of the specified command.'
     +' If we look at our tip function we can see that it requires 3 parameters, an amount, a user and the chosen asset:'
     +'\n`/tip <user> <amount> <asset>`'
     +'\nIf we were to actually fill in the parameters it would look like so:'
-    +'\n`/tip @xGozzy 1 EGEM`'
+    +'\n`/tip @xGozzy 1 ETH`'
     +'\n\nIf one was to use the rain command which format is declared as:'
     +'\n`/rain <amount> <asset>`'
     +'\nIt would be called as so:'
@@ -104,16 +104,16 @@ const helpInfo =
     +'\n\nThen finally the withdraw command:'
     +'\n`/withdraw <address> <amount> <asset>`'
     +'\nWould look like:'
-    +'\n`/withdraw 0xA5d505F9EfA7aFC13C82C1e87E12F0562A5ed78f 1 EGEM`'
+    +'\n`/withdraw 0xA5d505F9EfA7aFC13C82C1e87E12F0562A5ed78f 1 ETH`'
     +'\n\n`Fees and gas dependency`'
-    +'\nIn order to send transactions, one must have a EGEM balance to pay compensation for the transaction fee.'
-    +' This means one cannot tip VLDY without an active EGEM balance.'
-    +'\n\nAs this bot is not funded, there will be a fee implementation of ***1 EGEM per tip*** in order to allow it be'
+    +'\nIn order to send transactions, one must have a ETH balance to pay compensation for the transaction fee.'
+    +' This means one cannot tip VLDY without an active ETH balance.'
+    +'\n\nAs this bot is not funded, there will be a fee implementation of ***1 ETH per tip*** in order to allow it be'
     +' hosted on a virtual machine for 24/7 uptime and swift responses. A % of the fees will be split among the core team'
     +' and a % will be isolated for community events.'
     +'\n\n`Security disclaimer`'
     +'\nThis bot is ***centralised*** and is not ultimately secure for storing large amount of assets, please use an associated'
-    +' EtherGem wallet to store your funds securely: \nhttps://myegemwallet.com/'
+    +' Ethereum wallet to store your funds securely: \nhttps://myetherwallet.com/'
     +'\n\n`Users must take it into their own responsibilities to withdraw their'
     +' own balances frequently. The Validity team is not responsibile for any losses.`'
     +'\n\n`Source Code`'
@@ -155,12 +155,12 @@ tbot.command('leaderboard', async(ctx) => {
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
   return ctx.replyWithMarkdown(
-  '👾 ***EtherGem*** 👾'
-  +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + '`' + '` EGEM`'
-  +'\n***2:*** ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + '`' + '` EGEM`'
-  +'\n***3:*** ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + '`' + '` EGEM`'
-  +'\n***4:*** ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + '`' + '` EGEM`'
-  +'\n***5:*** ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + '`' + '` EGEM`'
+  '👾 ***Ethereum*** 👾'
+  +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + '`' + '` ETH`'
+  +'\n***2:*** ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + '`' + '` ETH`'
+  +'\n***3:*** ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + '`' + '` ETH`'
+  +'\n***4:*** ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + '`' + '` ETH`'
+  +'\n***5:*** ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + '`' + '` ETH`'
 
   +'\n\n🌀 ***Validity*** 🌀'
   +'\n\n***1:*** ' + `@${token[0]}` + ' ***-*** ' + '`' + `${token[token[0]]}` + '`' + '` VLDY`'
@@ -177,12 +177,12 @@ tbot.action('leaderboard', async(ctx) => {
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
   return ctx.replyWithMarkdown(
-  '💎 ***EtherGem*** 💎'
-  +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + '`' + '` EGEM`'
-  +'\n***2:*** ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + '`' + '` EGEM`'
-  +'\n***3:*** ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + '`' + '` EGEM`'
-  +'\n***4:*** ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + '`' + '` EGEM`'
-  +'\n***5:*** ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + '`' + '` EGEM`'
+  '💎 ***Ethereum*** 💎'
+  +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + '`' + '` ETH`'
+  +'\n***2:*** ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + '`' + '` ETH`'
+  +'\n***3:*** ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + '`' + '` ETH`'
+  +'\n***4:*** ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + '`' + '` ETH`'
+  +'\n***5:*** ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + '`' + '` ETH`'
 
   +'\n\n🌀 ***Validity*** 🌀'
   +'\n\n***1:*** ' + `@${token[0]}` + ' ***-*** ' + '`' + `${token[token[0]]}` + '`' + '` VLDY`'
@@ -203,7 +203,7 @@ tbot.command('balance', async(ctx) => {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
     return ctx.reply(`@${ctx.message.from.username}'s funds: ` + ` 💎 ${gas}`
-    + ' EGEM ' + ` 🌀 ${token}`  + ' VLDY');
+    + ' ETH ' + ` 🌀 ${token}`  + ' VLDY');
     }
   }
 })
@@ -218,7 +218,7 @@ tbot.action('balance' , async(ctx) => {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
     return ctx.reply(`@${ctx.callbackQuery.from.username}'s funds: ` + ` 💎 ${gas}`
-    + ' EGEM ' + ` 🌀 ${token}` + ' VLDY');
+    + ' ETH ' + ` 🌀 ${token}` + ' VLDY');
     }
   }
 })
@@ -243,7 +243,7 @@ tbot.command('stats', async(ctx) => {
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
   return ctx.reply(`@${ctx.message.from.username}'s stats:'`
-    + `\n💎 ` + `${gas[ctx.message.from.username]} EGEM `
+    + `\n💎 ` + `${gas[ctx.message.from.username]} ETH `
     + `\n🌀 ` + `${token[ctx.message.from.username]} VLDY`);
   }
 })
@@ -254,7 +254,7 @@ tbot.action('stats', async(ctx) => {
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
   return ctx.reply(`@${ctx.callbackQuery.from.username}'s stats:'`
-    `\n💎 ` + `${gas[ctx.callbackQuery.from.username]} EGEM `
+    `\n💎 ` + `${gas[ctx.callbackQuery.from.username]} ETH `
     + `\n🌀 ` + `${token[ctx.callbackQuery.from.username]} VLDY`);
   }
 })
@@ -286,7 +286,7 @@ tbot.command('withdraw', async(ctx) => {
   if(inputParameters.length != 3){
     return ctx.replyWithMarkdown("⚠️  Incorrect parameter amount");
   } else if(!wallet.isAddress(target0x)){
-    return ctx.replyWithMarkdown("⚠️  Incorrect EtherGem address");
+    return ctx.replyWithMarkdown("⚠️  Incorrect Ethereum address");
   }
 
   if(await wallet.isAddress(calling0x) == true){
