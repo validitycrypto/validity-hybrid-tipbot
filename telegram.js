@@ -4,7 +4,7 @@ const Extra = require('telegraf/extra');
 const wallet = require('./wallet.js');
 const telegraf = require('telegraf');
 
-const tbot = new telegraf("703021129:AAF8VSYYfjvj8DpXYFtxPM3EzSt7qhrrKo0");
+const tbot = new telegraf("x");
 
 const transactionModal  = (_hash) => Markup.inlineKeyboard([
   Markup.urlButton('🔗 Tx',`https://ropsten.etherscan.io/tx/${_hash}`),
