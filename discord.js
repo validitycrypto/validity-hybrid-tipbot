@@ -100,7 +100,6 @@ client.on('ready', async() => {
 commandLimit = async(_id) => {
   var commandLimitor = await wallet.getCall(_id);
   var currentTime = new Date();
-  console.log(commandLimitor , currentTime.getTime());
   console.log(commandLimitor < currentTime.getTime() || commandLimitor == undefined)
   if(commandLimitor < currentTime.getTime() || commandLimitor == undefined){
     await wallet.logCall(_id);
@@ -126,8 +125,8 @@ commandBalance = async(_msg) => {
   } else {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
-    return _msg.channel.send(`<@!${_msg.author.id}>` + ' your funds are: ' + '<:ethereum:490221755756183554>' + '`' + ` ${gas}`
-    + ` ETH ` + '`' + ' <:validity:490221401232506882> ' + '`' + ` ${token}` + ` VLDY` + '`');
+    return _msg.channel.send(`<@!${_msg.author.id}>` + ' your funds are: ' + '<:ethereum:490221755756183554>' + '`' + ` ${wallet.presentNumber(gas)}`
+    + ` ETH ` + '`' + ' <:validity:490221401232506882> ' + '`' + ` ${wallet.presentNumber(token)}` + ` VLDY` + '`');
   }
 }
 
@@ -149,18 +148,18 @@ commandLeaderboard = async(_msg) => {
       .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
       .setDescription(
         '\n<:Ethereum:490221755756183554> **Ethereum** <:Ethereum:490221755756183554>'
-        +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + ' ETH`'
-        +'\n***2:***  ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + ' ETH`'
-        +'\n***3:***  ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + ' ETH`'
-        +'\n***4:***  ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + ' ETH`'
-        +'\n***5:***  ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + ' ETH`'
+        +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[0]])}` + ' ETH`'
+        +'\n***2:***  ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[1]])}` + ' ETH`'
+        +'\n***3:***  ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[2]])}` + ' ETH`'
+        +'\n***4:***  ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[3]])}` + ' ETH`'
+        +'\n***5:***  ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[4]])}` + ' ETH`'
 
         +'\n\n<:validity:490221401232506882> **Validity** <:validity:490221401232506882>'
-        +'\n\n***1:***  ' + `@${token[0]}` + ' ***-*** ' + '`' + `${token[token[0]]}` + ' VLDY`'
-        +'\n***2:***  ' + `@${token[1]}` + ' ***-*** ' + '`' + `${token[token[1]]}` + ' VLDY`'
-        +'\n***3:***  ' + `@${token[2]}` + ' ***-*** ' + '`' + `${token[token[2]]}` + ' VLDY`'
-        +'\n***4:***  ' + `@${token[3]}` + ' ***-*** ' + '`' + `${token[token[3]]}` + ' VLDY`'
-        +'\n***5:***  ' + `@${token[4]}` + ' ***-*** ' + '`' + `${token[token[4]]}` + ' VLDY`'
+        +'\n\n***1:***  ' + `@${token[0]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[0]])}` + ' VLDY`'
+        +'\n***2:***  ' + `@${token[1]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[1]])}` + ' VLDY`'
+        +'\n***3:***  ' + `@${token[2]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[2]])}` + ' VLDY`'
+        +'\n***4:***  ' + `@${token[3]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[3]])}` + ' VLDY`'
+        +'\n***5:***  ' + `@${token[4]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[4]])}` + ' VLDY`'
       )
       .setAuthor("🏆 Leaderboard")
   return _msg.channel.send({ embed });
@@ -197,7 +196,7 @@ commandTip = async(_msg) => {
                   .setDescription(
                     `<@!${_msg.author.id}> tipped `+
                     `${inputParameters[0]} of ` + ' `'
-                    + `${inputParameters[1]} ${inputParameters[2]}` + ' `' +  ' 🎉'
+                    + `${wallet.presentNumber(inputParameters[1])} ${inputParameters[2]}` + ' `' +  ' 🎉'
                   )
                   .setURL(`https://ropsten.etherscan.io/tx/${tx}`)
               return _msg.channel.send({ embed });
@@ -250,7 +249,7 @@ commandRain = async(_msg) => {
                     .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
                     .setDescription(
                       `<@!${_msg.author.id}> rained `
-                      + `${finalParse}` + ` of ` + ' `' + `${inputParameters[0]} `
+                      + `${finalParse}` + ` of ` + ' `' + `${wallet.presentNumber(inputParameters[0])} `
                       +`${inputParameters[1]}` + ' `' +  '💥'
                     )
                     .setURL(`https://ropsten.etherscan.io/tx/${rainedUsers.tx}`)
@@ -298,7 +297,7 @@ commandWithdraw = async(_msg) => {
                   .setDescription(
                     `<@!${_msg.author.id}> withdrew to ` + ' `'
                     + `${inputParameters[0]}` + '`' +  ' of ' + ' `'
-                    + `${inputParameters[1]} ${inputParameters[2]}`
+                    + `${wallet.presentNumber(inputParameters[1])} ${inputParameters[2]}`
                     + ' `' +  ' 📤')
                     .setURL(`https://ropsten.etherscan.io/tx/${tx}`)
               return _msg.channel.send({ embed });
@@ -320,8 +319,8 @@ commandStats = async(_msg) => {
   const embed = new Discord.RichEmbed()
       .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
       .setDescription(
-      `<:Ethereum:490221755756183554> ` + '`' + `${gas[_msg.author.username]} ETH `  + '`'
-      + `\n <:validity:490221401232506882> `  + '`' + `${token[_msg.author.username]} VLDY`  + '`')
+      `<:ethereum:490221755756183554> ` + '`' + `${wallet.presentNumber(gas[_msg.author.username])} ETH `  + '`'
+      + `\n <:validity:490221401232506882> `  + '`' + `${wallet.presentNumber(token[_msg.author.username])} VLDY`  + '`')
       .setAuthor(`⭐ ${_msg.author.username}'s stats`, _msg.author.displayAvatarURL)
   return _msg.channel.send({ embed });
 }
@@ -361,13 +360,23 @@ commandAbout= async(_msg) => {
 }
 
 commandApprove= async(_msg) => {
+  var inputParameters = _msg.content.split("/approve ").pop().split(" ");
+
+  if(inputParameters.length != 1){
+    return _msg.channel.send("⚠️ Incorrect parameter amount");
+  }
+
   var callingUser = _msg.author.username;
   var calling0x = await wallet.proofAccount(callingUser);
 
   if(await wallet.isAddress(calling0x) == true){
-    var gas = await wallet.gasBalance(calling0x);
+    var inputValidity = await wallet.proofNumber(inputParameters[0]);
+    inputParameters[0] = await wallet.decimalLimit(inputParameters[0]);
+    if(!inputValidity){
+      return _msg.channel.send('⚠️ Not a number');
+    }  var gas = await wallet.gasBalance(calling0x);
     if(gas > 0.05){
-     var tx = await wallet.approveTokens(calling0x);
+     var tx = await wallet.approveTokens(calling0x, inputParameters[0]);
      if(tx != undefined){
        const embed = new Discord.RichEmbed()
            .setTitle("🔗 Transaction")
@@ -412,89 +421,35 @@ commandReset = async(_msg) => {
   }
 }
 
+commandAllowence = async(_msg) => {
+    var userAccount = await wallet.viewAccount(_msg.author.username);
+    var currentAllowence = await wallet.approved(userAccount);
+    return _msg.channel.send(`<@!${_msg.author.id}>'s allowence: ` + '`' + `${wallet.presentNumber(currentAllowence)} VLDY` + '`' + ` <:validity:490221401232506882>`);
+}
+
 client.on('message', async(msg) => {
 
-  if(msg.content === '/generate') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandGenerate(msg);
-    }
-  } else if(msg.content === '/balance') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandBalance(msg);
-    }
-  } else if(msg.content === '/leaderboard') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandLeaderboard(msg);
-    }
-  } else if(msg.content === '/deposit') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandDeposit(msg);
-    }
-  } else if(msg.content.split(" ")[0] === '/tip') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandTip(msg);
-    }
-  } else if(msg.content.split(" ")[0] === '/rain') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandRain(msg);
-    }
-  } else if(msg.content.split(" ")[0] === '/withdraw') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandWithdraw(msg);
-    }
-  }  else if(msg.content === '/stats') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandStats(msg);
-    }
-  } else if(msg.content === '/help') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandHelp(msg);
-    }
-  } else if(msg.content === '/commands') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandOveriew(msg);
-    }
-  } else if(msg.content === '/about') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandAbout(msg);
-    }
-  } else if(msg.content === '/approve') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandApprove(msg);
-    }
-  } else if(msg.content === '/reset') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return commandReset(msg);
-    }
-  } else if(msg.content === '/admin') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return msg.channel.send(randomAdmin[Math.floor(Math.random() * randomAdmin.length)])
-    }
-  } else if(msg.content === '/facts') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return msg.channel.send(randomFacts[Math.floor(Math.random() * randomFacts.length)])
-    }
-  } else if(msg.content === '/praise') {
-    if(await commandLimit(msg.author.id) == true){
-    await wallet.logCall(msg.author.id);
-    return msg.channel.send(randomPraise[Math.floor(Math.random() * randomPraise.length)])
-    }
-  }
+  if(await commandLimit(msg.author.id) == true){
+  await wallet.logCall(msg.author.id);
+
+  if(msg.content === '/admin') return msg.channel.send(randomAdmin[Math.floor(Math.random() * randomAdmin.length)]);
+  else if(msg.content === '/facts') return msg.channel.send(randomFacts[Math.floor(Math.random() * randomFacts.length)]);
+  else if(msg.conent === '/praise') return msg.channel.send(randomPraise[Math.floor(Math.random() * randomPraise.length)]);
+  else if(msg.content.split(" ")[0] === '/withdraw') return commandWithdraw(msg);
+  else if(msg.content.split(" ")[0] === '/approve') return commandApprove(msg);
+  else if(msg.content.split(" ")[0] === '/rain') return commandRain(msg);
+  else if(msg.content.split(" ")[0] === '/tip') return commandTip(msg);
+  else if(msg.content === '/generate')  return commandGenerate(msg);
+  else if(msg.content === '/balance')  return commandBalance(msg);
+  else if(msg.content === '/leaderboard') return commandLeaderboard(msg);
+  else if(msg.content === '/deposit')  return commandDeposit(msg);
+  else if(msg.content === '/stats') return commandStats(msg);
+  else if(msg.content === '/help') return commandHelp(msg);
+  else if(msg.content === '/commands') return commandOveriew(msg);
+  else if(msg.content === '/about') return commandAbout(msg);
+  else if(msg.content === '/allowence') return commandAllowence(msg);
+  else if(msg.content === '/reset') return commandReset(msg);
+}
 
 });
 

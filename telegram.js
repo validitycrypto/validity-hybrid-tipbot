@@ -4,6 +4,8 @@ const Extra = require('telegraf/extra');
 const wallet = require('./wallet.js');
 const telegraf = require('telegraf');
 
+const tbot = new telegraf("703021129:AAF8VSYYfjvj8DpXYFtxPM3EzSt7qhrrKo0");
+
 const transactionModal  = (_hash) => Markup.inlineKeyboard([
   Markup.urlButton('🔗 Tx',`https://ropsten.etherscan.io/tx/${_hash}`),
   Markup.callbackButton('🔥 Tip', 'fire')
@@ -123,8 +125,9 @@ const helpInfo =
     +' https://github.com/validitycrypto/validity-hybrid-tipbot';
 
 module.exports.initialiseTelegram = initialiseTelegram = async(_token) => {
-  var tbot = await new telegraf(_token)
-  await tbot.launch();
+   await tbot.launch();
+
+ }
 
 
 commandLimit = async(_id) => {
@@ -155,19 +158,19 @@ tbot.command('leaderboard', async(ctx) => {
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
   return ctx.replyWithMarkdown(
-  '👾 ***Ethereum*** 👾'
-  +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + '`' + '` ETH`'
-  +'\n***2:*** ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + '`' + '` ETH`'
-  +'\n***3:*** ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + '`' + '` ETH`'
-  +'\n***4:*** ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + '`' + '` ETH`'
-  +'\n***5:*** ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + '`' + '` ETH`'
+    '💎 ***Ethereum*** 💎'
+    +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[0]])}` + '`' + '` ETH`'
+    +'\n***2:*** ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[1]])}` + '`' + '` ETH`'
+    +'\n***3:*** ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[2]])}` + '`' + '` ETH`'
+    +'\n***4:*** ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[3]])}` + '`' + '` ETH`'
+    +'\n***5:*** ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[4]])}` + '`' + '` ETH`'
 
-  +'\n\n🌀 ***Validity*** 🌀'
-  +'\n\n***1:*** ' + `@${token[0]}` + ' ***-*** ' + '`' + `${token[token[0]]}` + '`' + '` VLDY`'
-  +'\n***2:*** ' + `@${token[1]}` + ' ***-*** ' + '`' + `${token[token[1]]}` + '`' + '` VLDY`'
-  +'\n***3:*** ' + `@${token[2]}` + ' ***-*** ' + '`' + `${token[token[2]]}` + '`' + '` VLDY`'
-  +'\n***4:*** ' + `@${token[3]}` + ' ***-*** ' + '`' + `${token[token[3]]}` + '`' + '` VLDY`'
-  +'\n***5:*** ' + `@${token[4]}` + ' ***-*** ' + '`' + `${token[token[4]]}` + '`' + '` VLDY`');
+    +'\n\n🌀 ***Validity*** 🌀'
+    +'\n\n***1:*** ' + `@${token[0]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[0]])}` + '`' + '` VLDY`'
+    +'\n***2:*** ' + `@${token[1]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[1]])}` + '`' + '` VLDY`'
+    +'\n***3:*** ' + `@${token[2]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[2]])}` + '`' + '` VLDY`'
+    +'\n***4:*** ' + `@${token[3]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[3]])}` + '`' + '` VLDY`'
+    +'\n***5:*** ' + `@${token[4]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[4]])}` + '`' + '` VLDY`');
 }
 })
 
@@ -178,18 +181,18 @@ tbot.action('leaderboard', async(ctx) => {
   var gas = await wallet.gasTotal("telegram");
   return ctx.replyWithMarkdown(
   '💎 ***Ethereum*** 💎'
-  +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${gas[gas[0]]}` + '`' + '` ETH`'
-  +'\n***2:*** ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${gas[gas[1]]}` + '`' + '` ETH`'
-  +'\n***3:*** ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${gas[gas[2]]}` + '`' + '` ETH`'
-  +'\n***4:*** ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${gas[gas[3]]}` + '`' + '` ETH`'
-  +'\n***5:*** ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${gas[gas[4]]}` + '`' + '` ETH`'
+  +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[0]])}` + '`' + '` ETH`'
+  +'\n***2:*** ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[1]])}` + '`' + '` ETH`'
+  +'\n***3:*** ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[2]])}` + '`' + '` ETH`'
+  +'\n***4:*** ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[3]])}` + '`' + '` ETH`'
+  +'\n***5:*** ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[4]])}` + '`' + '` ETH`'
 
   +'\n\n🌀 ***Validity*** 🌀'
-  +'\n\n***1:*** ' + `@${token[0]}` + ' ***-*** ' + '`' + `${token[token[0]]}` + '`' + '` VLDY`'
-  +'\n***2:*** ' + `@${token[1]}` + ' ***-*** ' + '`' + `${token[token[1]]}` + '`' + '` VLDY`'
-  +'\n***3:*** ' + `@${token[2]}` + ' ***-*** ' + '`' + `${token[token[2]]}` + '`' + '` VLDY`'
-  +'\n***4:*** ' + `@${token[3]}` + ' ***-*** ' + '`' + `${token[token[3]]}` + '`' + '` VLDY`'
-  +'\n***5:*** ' + `@${token[4]}` + ' ***-*** ' + '`' + `${token[token[4]]}` + '`' + '` VLDY`');
+  +'\n\n***1:*** ' + `@${token[0]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[0]])}` + '`' + '` VLDY`'
+  +'\n***2:*** ' + `@${token[1]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[1]])}` + '`' + '` VLDY`'
+  +'\n***3:*** ' + `@${token[2]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[2]])}` + '`' + '` VLDY`'
+  +'\n***4:*** ' + `@${token[3]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[3]])}` + '`' + '` VLDY`'
+  +'\n***5:*** ' + `@${token[4]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[4]])}` + '`' + '` VLDY`');
 }
 })
 
@@ -202,8 +205,8 @@ tbot.command('balance', async(ctx) => {
   } else {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
-    return ctx.reply(`@${ctx.message.from.username}'s funds: ` + ` 💎 ${gas}`
-    + ' ETH ' + ` 🌀 ${token}`  + ' VLDY');
+    return ctx.reply(`@${ctx.message.from.username}'s funds: ` + ` 💎 ${wallet.presentNumber(gas)}`
+    + ' ETH ' + ` 🌀 ${wallet.presentNumber(token)}`  + ' VLDY');
     }
   }
 })
@@ -217,8 +220,9 @@ tbot.action('balance' , async(ctx) => {
   } else {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
-    return ctx.reply(`@${ctx.callbackQuery.from.username}'s funds: ` + ` 💎 ${gas}`
-    + ' ETH ' + ` 🌀 ${token}` + ' VLDY');
+
+    return ctx.reply(`@${ctx.callbackQuery.from.username}'s funds: ` + ` 💎 ${wallet.presentNumber(gas)}`
+    + ' ETH ' + ` 🌀 ${wallet.presentNumber(token)}` + ' VLDY');
     }
   }
 })
@@ -243,8 +247,8 @@ tbot.command('stats', async(ctx) => {
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
   return ctx.reply(`@${ctx.message.from.username}'s stats:'`
-    + `\n💎 ` + `${gas[ctx.message.from.username]} ETH `
-    + `\n🌀 ` + `${token[ctx.message.from.username]} VLDY`);
+    + `\n💎 ` + `${wallet.presentNumber(gas[ctx.message.from.username])} ETH `
+    + `\n🌀 ` + `${wallet.presentNumber(token[ctx.message.from.username])} VLDY`);
   }
 })
 
@@ -254,8 +258,19 @@ tbot.action('stats', async(ctx) => {
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
   return ctx.reply(`@${ctx.callbackQuery.from.username}'s stats:'`
-    `\n💎 ` + `${gas[ctx.callbackQuery.from.username]} ETH `
-    + `\n🌀 ` + `${token[ctx.callbackQuery.from.username]} VLDY`);
+    `\n💎 ` + `${wallet.presentNumber(gas[ctx.callbackQuery.from.username])} ETH `
+    + `\n🌀 ` + `${wallet.presentNumber(token[ctx.callbackQuery.from.username])} VLDY`);
+  }
+})
+
+tbot.command('allowence', async(ctx) => {
+  if(await commandLimit(ctx.message.from.id) == true){
+  await wallet.logCall(ctx.message.from.id);
+
+  var userAccount = await wallet.viewAccount(ctx.message.from.username);
+  var currentAllowence = await wallet.approved(userAccount);
+
+  return ctx.reply(`@${ctx.message.from.username}'s allowence: ` + `${wallet.presentNumber(currentAllowence)} VLDY` + ` 🌀`);
   }
 })
 
@@ -304,7 +319,7 @@ tbot.command('withdraw', async(ctx) => {
             return ctx.reply(
               `@${ctx.message.from.username} withdrew to `
               + `${inputParameters[0]}` +  ' of '
-              + `${inputParameters[1]} ${inputParameters[2]}`
+              + `${wallet.presentNumber(inputParameters[1])} ${inputParameters[2]}`
               +  ' 📤',
               Extra.markup(withdrawModal(tx)));
           }
@@ -370,13 +385,23 @@ tbot.command('/approve', async(ctx) => {
   if(await commandLimit(ctx.message.from.id) == true){
   await wallet.logCall(ctx.message.from.id);
 
+  var inputParameters = ctx.message.text.split("/approve ").pop().split(" ");
+
+  if(inputParameters.length != 1){
+    return ctx.replyWithMarkdown("⚠️ Incorrect parameter amount");
+  }
+
   var callingUser = ctx.message.from.username;
   var calling0x = await wallet.proofAccount(callingUser);
 
   if(await wallet.isAddress(calling0x) == true){
-     var gas = await wallet.gasBalance(calling0x);
+     var inputValidity = await wallet.proofNumber(inputParameters[0]);
+     inputParameters[0] = await wallet.decimalLimit(inputParameters[0]);
+     if(!inputValidity){
+       return ctx.replyWithMarkdown('⚠️ Not a number');
+     }  var gas = await wallet.gasBalance(calling0x);
      if(gas > 0.05){
-      var tx = await wallet.approveTokens(calling0x);
+      var tx = await wallet.approveTokens(calling0x, inputParameters[0]);
      if(tx != undefined){
        return ctx.replyWithMarkdown('Approval confrimed',
        Extra.markup(withdrawModal(tx)));
@@ -469,7 +494,7 @@ tbot.command('/tip', async(ctx) => {
             inputParameters[1], inputParameters[2]);
             return ctx.reply(
               `@${callingUser} tipped @${targetUser} of ` +
-              `${inputParameters[1]} ${inputParameters[2]}` + ' 🎉',
+              `${wallet.presentNumber(inputParameters[1])} ${inputParameters[2]}` + ' 🎉',
               Extra.markup(transactionModal(tx)))
           } else {
             return ctx.replyWithMarkdown(balanceValidity);
@@ -510,7 +535,7 @@ tbot.action('fire', async(ctx) => {
             inputParameters[4], inputParameters[5]);
             return ctx.reply(
               `@${callingUser} tipped @${targetUser} of ` +
-              `${inputParameters[4]} ${inputParameters[5]}` +  ' 🎉',
+              `${wallet.presentNumber(inputParameters[4])} ${inputParameters[5]}` +  ' 🎉',
               Extra.markup(transactionModal(tx)))
           } else {
             return ctx.answerCbQuery(balanceValidity);
@@ -561,7 +586,7 @@ tbot.command('/rain', async(ctx) => {
               }
               return ctx.reply(
                 `@${callingUser} rained `
-                + `${finalParse}` + ` of ` + `${inputParameters[0]} `
+                + `${finalParse}` + ` of ` + `${wallet.presentNumber(inputParameters[0])} `
                 +`${inputParameters[1]}` +  '💥',
                 Extra.markup(withdrawModal(rainedUsers.tx)));
             } else if(rainedUsers.users.length == 0){
@@ -578,5 +603,3 @@ tbot.command('/rain', async(ctx) => {
   }
 }
 })
-
-}

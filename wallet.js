@@ -25,6 +25,21 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
 
  }
 
+ module.exports.presentNumber = presentNumber = (_number) => {
+   return parseFloat(_number).toLocaleString();
+}
+
+ module.exports.proofNumber = proofNumber = (_number) => {
+   console.log(_number);
+   if(_number.toString().charAt(0) == '0' && _number.toString().charAt(1) == "x"){
+     return false;
+   } else if(isNaN(_number)){
+     return false;
+   } else if(!isNaN(_number)){
+     return true;
+   }
+}
+
  module.exports.proofParameters = proofParameters = (_caller, _user, _amount, _asset, _rain) => {
   if(!_rain){
     if(_user == undefined){
@@ -85,11 +100,6 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
       var accountGas = await gasBalance(_account);
       var gasFee = feeImplementation(_rain);
 
-      console.log("Amount:", _amount);
-      console.log("Token:", accountToken);
-      console.log("Gas:", accountGas);
-      console.log("Fee:", gasFee);
-
       if(_rain == false){
         if(( _asset == "ETH" || _asset == "ETH")){
           var totalGas = gasFee + _amount;
@@ -118,9 +128,6 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
       } else if(( _asset == "VLDY" || _asset == "vldy")){
         var approvalParse = await approved(_account);
         var totalToken = _amount*5;
-
-        console.log("Approved:", approvalParse);
-        console.log("Total:", totalToken);
 
         if(accountToken < totalToken){
           return ' Insufficent token balance available for transaction '
@@ -249,17 +256,15 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
        address: account.address,
        user: _username});
      await admin.firestore().collection(_username).add({
-       id: _chatid });
-     return account.address;
+       id: _chatid
+     }); return account.address;
    }
  }
 
    module.exports.logCall = logCall = async(_chatid) => {
      _chatid = "x" + _chatid;
     var timestampLimit = new Date();
-    console.log("OLD", timestampLimit.getTime());
     await timestampLimit.setSeconds(timestampLimit.getSeconds() + 3);
-    console.log("NEW", timestampLimit.getTime());
       await admin.firestore().collection(_chatid).add({
         call: timestampLimit.getTime()
       })
@@ -279,15 +284,13 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
      }
 
   module.exports.tokenbalance = tokenBalance = async(_target) => {
-    console.log(_target);
    const balance = await _instance.methods.balanceOf(_target).call();
-   console.log(balance);
    return parseFloat(balance/_ether).toFixed(2);
  }
 
   module.exports.gasBalance = gasBalance = async(_target) => {
    var balance = await _web3.eth.getBalance(_target);
-   return parseFloat(balance/_ether).toFixed(2);
+   return parseFloat(balance/_ether).toFixed(6);
  }
 
  module.exports.isAddress = isAddress = async(_address) => {
@@ -546,11 +549,8 @@ userGas = async(_platform ,_user) => {
     return parseFloat(value/_ether).toFixed(2);
 }
 
- module.exports.approveTokens = approveTokens = async(_payee) => {
-   var _approved = await approved(_payee);
-   console.log("APPROVED", _approved);
-   if(_approved == 0){
-     var standardApproval = _web3.utils.toHex(_web3.utils.toBN(5000000).mul(_web3.utils.toBN(1e18)));
+ module.exports.approveTokens = approveTokens = async(_payee, _amount) => {
+     var standardApproval = _web3.utils.toHex(_web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18)));
 
      const properNonce = await _web3.eth.getTransactionCount(_payee);
      const pendingTxs = await pendingTransactions(_payee);
@@ -567,10 +567,9 @@ userGas = async(_platform ,_user) => {
         }).on('transactionHash', (hash) => {
            resolve(hash);
       }));
-    }
   }
 
-  module.exports.resetApprove = approveTokens = async(_payee) => {
+  module.exports.resetApprove = resetApprove = async(_payee) => {
       const currentValue = await _instance.methods.allowance(_payee, multiLocation).call()
       var subtractValue =  _web3.utils.toHex(_web3.utils.toBN(currentValue));
 
