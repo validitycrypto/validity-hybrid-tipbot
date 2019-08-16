@@ -6,19 +6,24 @@ A tipbot that is interoperable across Telegram and Discord.
 
 ## Dependencies
 
-* Firebase credientals + JSON private key
+* Firebase project w/ firestore
+* Firebase service account
 * Telegram bot token
 * Discord bot token
+* Infura API key
+* Truffle GUI
 * Node.js
 
 ## Installation
 
-* Firebase credientals + JSON private key
-* Telegram bot token
-* Discord bot token
+* Replace the associated blank values within `bot.js` with your correlating project targets
+* `npm install`
 * `node bot.js`
 
-## Commands
+## Commands (generic)
+
+ ### * - Discord only
+ ### + - Telegram only
 
  ##### Withdraw
  ```
@@ -52,19 +57,26 @@ A tipbot that is interoperable across Telegram and Discord.
  ```
  /balance
  ```
- ##### Reset
- ```
- /reset
- ```
  ##### Stats
  ```
 /stats
  ```
- ##### Menu*
+ ##### Menu+
  ```
  /start
  ```
+ ##### About*
+ ```
+ /about
+ ```
  ##### Help
+ ```
+ /help
+ ```
+
+ ## Commands (unique)
+
+ ##### Validation
  ```
 /help
  ```

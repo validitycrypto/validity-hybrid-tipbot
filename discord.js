@@ -1,106 +1,22 @@
+const constants = require('./utils/constants.js');
+const telegramApi = require('telegraf/telegram');
+const wallet = require('./wallet.js');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-const wallet = require('./wallet.js');
-
-const prefixColors = [ 851823, 7277823, 15273215, 65535, 16711808, 16753920, 16777215 , 16776960,  255 ]
-
-const randomAdmin = [
-  'The simulacrum is never that which conceals the truth—it is the truth which conceals that there is none. \n The simulacrum is true.',
-  'I have a marketing proposal for your ICO admin 🗣',
-  'Blah, blah, blah, blah, BLAH!',
-  'Hyperreality or reality?',
-  'This is my turf dude 👊',
-  `STOP YO SHILLIN' 😡`,
-  'Get me some sugar',
-  'We are good hun',
-  `Y'all crazy ⏰`,
-  'NOCOINER ALERT',
-  'REEEEEEEEEEEE',
-  'normie',
-  'OOOF',
-  'SCEM',
-  'muh',
-  'rofl',
-  'kek'
-];
-
-const randomPraise = [
-  'License and registration please 🔦 ',
-  'But where is my tip?',
-  'YEEEEEEAAAAHHHHH',
-  'Seven blessings!',
-  'Wen deposit? 👀',
-  'Hallelujah! 👏',
-  'For Nakamoto?',
-  'For Isengard!',
-  'YEEEEEEEET',
-  'HODL',
-  'pl0x'
-];
-
-const randomFacts = [
-  'PoS (Proof of Stake) can be highly centralised, with the ability of a master public key which "solves" the nothing at stake condumrum, but at the cost of centralisation',
-  `There is a collective of miners utilising their combined hashpower to crack every existing Bitcoin private key using brute force, known as the Large Bitcoin Collider`,
-  `In the year 2017, 81% of all ICO's were amoral or inaffective, which resulted up to €300,0000,000 lost`,
-  'A high TPS (Transactions per second) throughput, unfortunately means centralisation is immient',
-  'ICOBench has a pay-per-review tiered system, with the more you bid the better the rating you get',
-  `There is over 32 BTC to be won, if one can solve Satoshi's puzzle transactions`,
-  'The majority of TRX dApps only orientate towards on gambling use-cases',
-  'Approximately 61% of the EOS supply resides in 100 addresses',
-  'Over 80% of the tops pairs on CMC are washedtraded'
-];
-
-const helpInfo =
-    '\n`Command parameters`'
-    +'\n`<user>` - An active telegram username, eg: @xGozzy'
-    +'\n`<amount>` - The amount one wishes to tip, eg: `100`'
-    +'\n`<asset>` - The asset one wishes to tip, eg: `ETH` or `VLDY`'
-    +'\n`<address>` - The address one wishes to withdraw to, eg:`0xA5d505F9EfA7aFC13C82C1e87E12F0562A5ed78f`'
-    +'\n\n`Command format`'
-    +'\nIn order to execute transactional based operations corrrectly, one must follow the format of the specified command.'
-    +' If we look at our tip function we can see that it requires 3 parameters, an amount, a user and the chosen asset:'
-    +'\n`/tip <user> <amount> <asset>`'
-    +'\nIf we were to actually fill in the parameters it would look like so:'
-    +'\n`/tip @xGozzy 1 ETH`'
-    +'\n\nIf one was to use the rain command which format is declared as:'
-    +'\n`/rain <amount> <asset>`'
-    +'\nIt would be called as so:'
-    +'\n`/rain 100 VLDY`'
-    +'\n\nThen finally the withdraw command:'
-    +'\n`/withdraw <address> <amount> <asset>`'
-    +'\nWould look like:'
-    +'\n`/withdraw 0xA5d505F9EfA7aFC13C82C1e87E12F0562A5ed78f 1 ETH`'
-
-const aboutInfo =
-    '\n`Fees and gas dependency`'
-    +'\nIn order to send transactions, one must have a ETH balance to pay compensation for the transaction fee.'
-    +' This means one cannot tip VLDY without an active ETH balance.'
-    +'\n\nAs this bot is not funded, there will be a fee implementation of ***1 ETH per tip*** in order to allow it be'
-    +' hosted on a virtual machine for 24/7 uptime and swift responses. A % of the fees will be split among the core team'
-    +' and a % will be isolated for community events.'
-    +'\n\n`Security disclaimer`'
-    +'\nThis bot is ***centralised*** and is not ultimately secure for storing large amount of assets, please use an associated'
-    +' Ethereum wallet to store your funds securely: \nhttps://myetherwallet.com/'
-    +'\n\n`Users must take it into their own responsibilities to withdraw their'
-    +' own balances frequently. The Validity team is not responsibile for any losses.`'
-    +'\n\n`Source Code`'
-    +'\nThis bot was developed by @xGozzy on behalf of @ValidityCrypto, to incentivize community events and activity but'
-    +' also to allow seamless tips between the team and community members. It will be updated regularly to ensure maximum'
-    +' efficency and security. View the source code at:'
-    +' https://github.com/validitycrypto/validity-hybrid-tipbot';
-
 module.exports.initialiseDiscord = initialiseDiscord = async(_token) => {
-await client.login(_token);
+  await client.login(_token);
+}
 
 client.on('ready', async() => {
   console.log(`Logged in as ${client.user.tag}!`);
-});
+})
+
+client.on('error', (error) => console.log);
 
 commandLimit = async(_id) => {
   var commandLimitor = await wallet.getCall(_id);
   var currentTime = new Date();
-  console.log(commandLimitor < currentTime.getTime() || commandLimitor == undefined)
   if(commandLimitor < currentTime.getTime() || commandLimitor == undefined){
     await wallet.logCall(_id);
     return true;
@@ -125,8 +41,8 @@ commandBalance = async(_msg) => {
   } else {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
-    return _msg.channel.send(`<@!${_msg.author.id}>` + ' your funds are: ' + '<:ethereum:490221755756183554>' + '`' + ` ${wallet.presentNumber(gas)}`
-    + ` ETH ` + '`' + ' <:validity:490221401232506882> ' + '`' + ` ${wallet.presentNumber(token)}` + ` VLDY` + '`');
+    return _msg.channel.send(`<@!${_msg.author.id}>` + ' your funds are: ' + '<:eth:609363090450153522>' + '`' + ` ${wallet.presentNumber(gas, true)}`
+    + ` ETH ` + '`' + ' <:vldy:490221401232506882> ' + '`' + ` ${wallet.presentNumber(token)}` + ` VLDY` + '`');
   }
 }
 
@@ -145,16 +61,16 @@ commandLeaderboard = async(_msg) => {
   var token = await wallet.tokenTotal("discord");
   var gas = await wallet.gasTotal("discord");
   const embed = new Discord.RichEmbed()
-      .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
+      .setColor(constants.prefixColors[Math.floor(Math.random() * constants.prefixColors.length)])
       .setDescription(
-        '\n<:Ethereum:490221755756183554> **Ethereum** <:Ethereum:490221755756183554>'
+        '\n<:eth:609363090450153522> **Ethereum** <:eth:609363090450153522>'
         +'\n\n***1:*** ' + `@${gas[0]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[0]])}` + ' ETH`'
         +'\n***2:***  ' + `@${gas[1]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[1]])}` + ' ETH`'
         +'\n***3:***  ' + `@${gas[2]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[2]])}` + ' ETH`'
         +'\n***4:***  ' + `@${gas[3]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[3]])}` + ' ETH`'
         +'\n***5:***  ' + `@${gas[4]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(gas[gas[4]])}` + ' ETH`'
 
-        +'\n\n<:validity:490221401232506882> **Validity** <:validity:490221401232506882>'
+        +'\n\n<:vldy:490221401232506882> **Validity** <:vldy:490221401232506882>'
         +'\n\n***1:***  ' + `@${token[0]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[0]])}` + ' VLDY`'
         +'\n***2:***  ' + `@${token[1]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[1]])}` + ' VLDY`'
         +'\n***3:***  ' + `@${token[2]}` + ' ***-*** ' + '`' + `${wallet.presentNumber(token[token[2]])}` + ' VLDY`'
@@ -192,13 +108,13 @@ commandTip = async(_msg) => {
               inputParameters[1], inputParameters[2]);
               const embed = new Discord.RichEmbed()
                   .setTitle("🔗 Transaction")
-                  .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
+                  .setColor(constants.prefixColors[Math.floor(Math.random() * constants.prefixColors.length)])
                   .setDescription(
                     `<@!${_msg.author.id}> tipped `+
                     `${inputParameters[0]} of ` + ' `'
                     + `${wallet.presentNumber(inputParameters[1])} ${inputParameters[2]}` + ' `' +  ' 🎉'
                   )
-                  .setURL(`https://ropsten.etherscan.io/tx/${tx}`)
+                  .setURL(`https://etherscan.io/tx/${tx}`)
               return _msg.channel.send({ embed });
             } else {
               return _msg.channel.send(balanceValidity);
@@ -246,13 +162,13 @@ commandRain = async(_msg) => {
                 }
                 const embed = new Discord.RichEmbed()
                     .setTitle("🔗 Transaction")
-                    .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
+                    .setColor(constants.prefixColors[Math.floor(Math.random() * constants.prefixColors.length)])
                     .setDescription(
                       `<@!${_msg.author.id}> rained `
                       + `${finalParse}` + ` of ` + ' `' + `${wallet.presentNumber(inputParameters[0])} `
                       +`${inputParameters[1]}` + ' `' +  '💥'
                     )
-                    .setURL(`https://ropsten.etherscan.io/tx/${rainedUsers.tx}`)
+                    .setURL(`https://etherscan.io/tx/${rainedUsers.tx}`)
                 return _msg.channel.send({ embed });
               } else {
                 return _msg.channel.send('⚠️ No users active to rain');
@@ -293,13 +209,13 @@ commandWithdraw = async(_msg) => {
           if(tx != undefined){
               const embed = new Discord.RichEmbed()
                   .setTitle("🔗 Transaction")
-                  .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
+                  .setColor(constants.prefixColors[Math.floor(Math.random() * constants.prefixColors.length)])
                   .setDescription(
                     `<@!${_msg.author.id}> withdrew to ` + ' `'
                     + `${inputParameters[0]}` + '`' +  ' of ' + ' `'
                     + `${wallet.presentNumber(inputParameters[1])} ${inputParameters[2]}`
                     + ' `' +  ' 📤')
-                    .setURL(`https://ropsten.etherscan.io/tx/${tx}`)
+                    .setURL(`https://etherscan.io/tx/${tx}`)
               return _msg.channel.send({ embed });
           }
         } else {
@@ -317,44 +233,43 @@ commandStats = async(_msg) => {
   var token = await wallet.tokenTotal("discord");
   var gas = await wallet.gasTotal("discord");
   const embed = new Discord.RichEmbed()
-      .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
+      .setColor(constants.prefixColors[Math.floor(Math.random() * constants.prefixColors.length)])
       .setDescription(
-      `<:ethereum:490221755756183554> ` + '`' + `${wallet.presentNumber(gas[_msg.author.username])} ETH `  + '`'
-      + `\n <:validity:490221401232506882> `  + '`' + `${wallet.presentNumber(token[_msg.author.username])} VLDY`  + '`')
+      `<:eth:609363090450153522> ` + '`' + `${wallet.presentNumber(gas[_msg.author.username])} ETH `  + '`'
+      + `\n <:vldy:490221401232506882> `  + '`' + `${wallet.presentNumber(token[_msg.author.username])} VLDY`  + '`')
       .setAuthor(`⭐ ${_msg.author.username}'s stats`, _msg.author.displayAvatarURL)
   return _msg.channel.send({ embed });
 }
 
 commandOveriew = async(_msg) => {
   const embed = new Discord.RichEmbed()
-      .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
-      .setDescription(
-        '\n***Withdraw:*** `/withdraw <address> <amount> <asset>`'
-        +'\n***Tip:*** `/tip <user> <amount> <asset>`'
-        +'\n***Rain***: `/rain <amount> <asset>`'
-        +'\n***Leaderboard:*** `/leaderboard`'
-        +'\n***Generate:*** `/generate`'
-        +'\n***Deposit:*** `/deposit`'
-        +'\n***Balance:*** `/balance`'
-        +'\n***Stats:*** `/stats`'
-        +'\n***About:*** `/about`'
-        +'\n***Help:*** `/help`')
+      .setColor(constants.prefixColors[Math.floor(Math.random() * constants.prefixColors.length)])
+      .setDescription(constants.commandList)
       .setAuthor("🛠️ Commands")
   return _msg.channel.send({ embed });
 }
 
 commandHelp= async(_msg) => {
   const embed = new Discord.RichEmbed()
-      .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
-      .setDescription(helpInfo)
+      .setColor(constants.prefixColors[Math.floor(Math.random() * constants.prefixColors.length)])
+      .setDescription(constants.aboutInfo1)
       .setAuthor("⭐️ Help")
+  return _msg.channel.send({ embed });
+}
+
+commandValidation = async(_msg) => {
+  const currentEvent = await wallet.validationMetadata();
+  const embed = new Discord.RichEmbed()
+      .setColor(constants.prefixColors[Math.floor(Math.random() * constants.prefixColors.length)])
+      .setDescription(constants.validationInfo(currentEvent))
+      .setAuthor("🔹Active Validation")
   return _msg.channel.send({ embed });
 }
 
 commandAbout= async(_msg) => {
   const embed = new Discord.RichEmbed()
-      .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
-      .setDescription(aboutInfo)
+      .setColor(constants.prefixColors[Math.floor(Math.random() * constants.prefixColors.length)])
+      .setDescription(constants.aboutInfo2)
       .setAuthor("🔍 About")
   return _msg.channel.send({ embed });
 }
@@ -375,14 +290,14 @@ commandApprove= async(_msg) => {
     if(!inputValidity){
       return _msg.channel.send('⚠️ Not a number');
     }  var gas = await wallet.gasBalance(calling0x);
-    if(gas > 0.05){
+    if(gas > 0.00015){
      var tx = await wallet.approveTokens(calling0x, inputParameters[0]);
      if(tx != undefined){
        const embed = new Discord.RichEmbed()
            .setTitle("🔗 Transaction")
-           .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
+           .setColor(constants.prefixColors[Math.floor(Math.random() * constants.prefixColors.length)])
            .setDescription('Successfully approved')
-           .setURL(`https://ropsten.etherscan.io/tx/${tx}`)
+           .setURL(`https://etherscan.io/tx/${tx}`)
        return _msg.channel.send({ embed });
      } else {
        return _msg.channel.send('⚠️ Error could not approve');
@@ -395,36 +310,10 @@ commandApprove= async(_msg) => {
   }
 }
 
-commandReset = async(_msg) => {
-  var callingUser = _msg.author.username;
-  var calling0x = await wallet.proofAccount(callingUser);
-
-  if(await wallet.isAddress(calling0x) == true){
-    var gas = await wallet.gasBalance(calling0x);
-    if(gas > 0.05){
-     var tx = await wallet.resetApprove(calling0x);
-     if(tx != undefined){
-       const embed = new Discord.RichEmbed()
-           .setTitle("🔗 Transaction")
-           .setColor(prefixColors[Math.floor(Math.random() * prefixColors.length)])
-           .setDescription('Successfully reset')
-           .setURL(`https://ropsten.etherscan.io/tx/${tx}`)
-       return _msg.channel.send({ embed });
-     } else {
-       return _msg.channel.send('⚠️ Error could not reset ');
-     }
-   } else {
-     return _msg.channel.send('⚠️ No gas to approve');
-   }
-  } else {
-    return _msg.channel.send(calling0x);
-  }
-}
-
 commandAllowence = async(_msg) => {
     var userAccount = await wallet.viewAccount(_msg.author.username);
     var currentAllowence = await wallet.approved(userAccount);
-    return _msg.channel.send(`<@!${_msg.author.id}>'s allowence: ` + '`' + `${wallet.presentNumber(currentAllowence)} VLDY` + '`' + ` <:validity:490221401232506882>`);
+    return _msg.channel.send(`<@!${_msg.author.id}>'s allowence: ` + '`' + `${wallet.presentNumber(currentAllowence)} VLDY` + '`' + ` <:vldy:490221401232506882>`);
 }
 
 client.on('message', async(msg) => {
@@ -432,9 +321,9 @@ client.on('message', async(msg) => {
   if(await commandLimit(msg.author.id) == true){
   await wallet.logCall(msg.author.id);
 
-  if(msg.content === '/admin') return msg.channel.send(randomAdmin[Math.floor(Math.random() * randomAdmin.length)]);
-  else if(msg.content === '/facts') return msg.channel.send(randomFacts[Math.floor(Math.random() * randomFacts.length)]);
-  else if(msg.conent === '/praise') return msg.channel.send(randomPraise[Math.floor(Math.random() * randomPraise.length)]);
+  if(msg.content === '/admin') return msg.channel.send(constants.randomAdmin[Math.floor(Math.random() * constants.randomAdmin.length)]);
+  else if(msg.content === '/facts') return msg.channel.send(constants.randomFacts[Math.floor(Math.random() * constants.randomFacts.length)]);
+  else if(msg.conent === '/praise') return msg.channel.send(constants.randomPraise[Math.floor(Math.random() * constants.randomPraise.length)]);
   else if(msg.content.split(" ")[0] === '/withdraw') return commandWithdraw(msg);
   else if(msg.content.split(" ")[0] === '/approve') return commandApprove(msg);
   else if(msg.content.split(" ")[0] === '/rain') return commandRain(msg);
@@ -446,11 +335,9 @@ client.on('message', async(msg) => {
   else if(msg.content === '/stats') return commandStats(msg);
   else if(msg.content === '/help') return commandHelp(msg);
   else if(msg.content === '/commands') return commandOveriew(msg);
+  else if(msg.content === '/validation') return commandValidation(msg);
   else if(msg.content === '/about') return commandAbout(msg);
-  else if(msg.content === '/allowence') return commandAllowence(msg);
-  else if(msg.content === '/reset') return commandReset(msg);
+  else if(msg.content === '/allowance') return commandAllowence(msg);
 }
 
 });
-
-}

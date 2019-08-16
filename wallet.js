@@ -1,19 +1,24 @@
 
-const tokenLocation = "0x45be13da023d817832e7bd65eb40c15828f39aa2";
-const multiLocation = "0x033625919fff64171ec12be1606c028983f38a82";
-const jsonMulti = require("./build/contracts/MultiSend.json");
+const tokenLocation = "0x904da022abcf44eba68d4255914141298a7f7307";
+const tipLocation = "0x51bb6fd1ab2cf10076549df44d4b6eda2a00e093";
+const mvpLocation = "0x00c1c8821abc108711daa82950c3ba5452899a88";
+
+const jsonMVP = require("./build/contracts/CommunalValidation.json");
+const jsonTip = require("./build/contracts/Tipbot.json");
 const jsonToken = require("./build/contracts/ERC20d.json");
 
 const Web3 = require('web3');
 const admin = require("firebase-admin");
 
-const _provider = new Web3.providers.WebsocketProvider('wss://ropsten.infura.io/ws/v3/<API-KEY>')
+const _provider = new Web3.providers.WebsocketProvider('wss://mainnet.infura.io/ws/v3/<API-KEY>')
+const _testnet = new Web3.providers.WebsocketProvider('wss://rinkeby.infura.io/ws/v3/<API-KEY>')
 const _web3 = new Web3(_provider);
+const _test3 = new Web3(_testnet);
 
 const _instance = new _web3.eth.Contract(jsonToken.abi, tokenLocation);
-const _rain = new _web3.eth.Contract(jsonMulti.abi, multiLocation);
+const _mvp = new _test3.eth.Contract(jsonMVP.abi, mvpLocation);
+const _rain = new _web3.eth.Contract(jsonTip.abi, tipLocation);
 
-const _feeWallet = "0xccCbF98AE04fD57810F4833fE6a9a5726A162a01";
 const _ether = Math.pow(10,18);
 
 module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) => {
@@ -25,12 +30,12 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
 
  }
 
- module.exports.presentNumber = presentNumber = (_number) => {
-   return parseFloat(_number).toLocaleString();
+ module.exports.presentNumber = presentNumber = (_number, _bool) => {
+   var options = _bool ? { minimumFractionDigits: 6 } : {};
+   return parseFloat(_number).toLocaleString(undefined, options);
 }
 
  module.exports.proofNumber = proofNumber = (_number) => {
-   console.log(_number);
    if(_number.toString().charAt(0) == '0' && _number.toString().charAt(1) == "x"){
      return false;
    } else if(isNaN(_number)){
@@ -96,11 +101,13 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
    }
 
    module.exports.proofBalances = proofBalances = async(_account, _amount, _asset, _rain) => {
-      var accountToken = await tokenBalance(_account);
-      var accountGas = await gasBalance(_account);
       var gasFee = feeImplementation(_rain);
+      var accountToken = await tokenBalance(_account);
+      var approvalParse = await approved(_account);
+      var accountGas = await gasBalance(_account);
 
       if(_rain == false){
+        gasFee += 0.00015;
         if(( _asset == "ETH" || _asset == "ETH")){
           var totalGas = gasFee + _amount;
           if(totalGas > accountGas){
@@ -113,11 +120,16 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
             return ' Insufficent token balance available for transaction '
           } else if(gasFee > accountGas){
             return ' Insufficent gas balance available for transaction '
+          } else if(approvalParse == 0){
+            return ' Please approve first!  '
+          } else if(approvalParse < _amount){
+            return ' Amount exceeds approval  '
           } else {
             return true;
           }
       }
     } else if(_rain == true){
+      gasFee += 0.0025;
       if(( _asset == "ETH" || _asset == "ETH")){
         var totalGas = gasFee + (_amount*5);
         if(totalGas > accountGas){
@@ -126,22 +138,22 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
           return true;
         }
       } else if(( _asset == "VLDY" || _asset == "vldy")){
-        var approvalParse = await approved(_account);
         var totalToken = _amount*5;
 
-        if(accountToken < totalToken){
+        if(accountToken < _amount){
           return ' Insufficent token balance available for transaction '
         } else if(gasFee > accountGas){
           return ' Insufficent gas balance available for transaction '
         } else if(approvalParse == 0){
           return ' Please approve first!  '
-        } else if(approvalParse <= totalToken){
+        } else if(approvalParse < _amount){
           return ' Amount exceeds approval  '
         } else {
           return true;
         }
       }
     } else if(_rain === "withdraw"){
+      gasFee += 0.00015;
       if(( _asset == "ETH" || _asset == "ETH")){
         var totalGas = gasFee + _amount;
         if(totalGas > accountGas){
@@ -154,6 +166,10 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
           return ' Insufficent token balance available for transaction '
         } else if(gasFee > accountGas){
           return ' Insufficent gas balance available for transaction '
+        } else if(approvalParse == 0){
+          return ' Please approve first!  '
+        } else if(approvalParse < _amount){
+          return ' Amount exceeds approval  '
         } else {
           return true;
         }
@@ -248,9 +264,8 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
 
   module.exports.createAccount = createAccount = async(_username, _chatid) => {
    _chatid = "v" + _chatid.toString();
-   if(await viewAccount(_username) == undefined){
+   if(await viewAccount(_username) === undefined){
     var account = _web3.eth.accounts.create();
-	   console.log(account);
      await admin.firestore().collection(_chatid).add({
        privateKey: account.privateKey,
        address: account.address,
@@ -287,6 +302,35 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
    const balance = await _instance.methods.balanceOf(_target).call();
    return parseFloat(balance/_ether).toFixed(2);
  }
+
+  module.exports.validationMetadata = validationMetadata = async() => {
+   const eventParticipants = await _mvp.methods.currentParticipants().call();
+   const eventSubject = await _mvp.methods.currentEvent().call();
+   const eventRound = await _mvp.methods.currentRound().call();
+
+   var eventTicker = await _mvp.methods.eventTicker(eventSubject, eventRound).call();
+   var eventType = await _mvp.methods.eventType(eventSubject, eventRound).call();
+
+   const eventPositive = await _mvp.methods.eventPositive(eventSubject, eventRound).call();
+   const eventNeutral = await _mvp.methods.eventNeutral(eventSubject, eventRound).call();
+   const eventNegative = await _mvp.methods.eventNegative(eventSubject, eventRound).call();
+
+   var eventName = await _web3.utils.toAscii(eventSubject);
+   eventTicker = await _web3.utils.toAscii(eventTicker);
+   eventType = await _web3.utils.toAscii(eventType);
+
+   return {
+     eventParticipants,
+     eventPositive,
+     eventNegative,
+     eventNeutral,
+     eventRound,
+     eventTicker,
+     eventName,
+     eventType
+   }
+
+  }
 
   module.exports.gasBalance = gasBalance = async(_target) => {
    var balance = await _web3.eth.getBalance(_target);
@@ -336,13 +380,12 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
      }
 
   module.exports.decimalLimit = decimalLimit = async(_amount) => {
-      _amount = parseFloat(_amount);
+      _amount = parseFloat(_amount.replace(',', ''));
       if(_amount % 1 == 0){
            _amount = parseInt(_amount);
         } else if(_amount % 1 != 0 && _amount > 999){
            _amount = _amount - _amount % 1;
-        }
-      return _amount;
+      } return _amount;
   }
 
 
@@ -356,10 +399,9 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
         await state.forEach((asset) => {
             result = asset.data().privateKey;
           })
-        if(result.charAt(0) != '0'
-        	&& result.charAt(1) != 'x'){ result = "0x" + result; }
-        console.log(result);
-        result = _web3.eth.accounts.privateKeyToAccount(result);
+        if(result.charAt(0) != '0'&& result.charAt(1) != 'x'){
+          result = "0x" + result;
+        } result = _web3.eth.accounts.privateKeyToAccount(result);
         _web3.eth.accounts.wallet.add(result);
         return result.address;
       })
@@ -387,18 +429,20 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
 
  gasTransfer = async(_payee, _recipent, _amount, _feeState) => {
    var zeroAddress = _web3.utils.toChecksumAddress("0x0000000000000000000000000000000000000000");
-   const feeCost = (feeImplementation(_feeState)  + _amount) * _ether;
+   var feeCost = feeImplementation(_feeState);
 
    if(_amount % 1 == 0){
+     feeCost = _web3.utils.toHex(_web3.utils.toBN(_amount+feeCost).mul(_web3.utils.toBN(1e18)));
      _amount = _web3.utils.toHex(_web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18)));
    } else if(_amount % 1 != 0){
-     _amount = _web3.utils.toHex(_amount * _ether);
+     feeCost = _web3.utils.toHex(parseInt((_amount+feeCost) * _ether));
+     _amount = _web3.utils.toHex(parseInt((_amount) * _ether));
    }
 
     const properNonce = await _web3.eth.getTransactionCount(_payee);
     const pendingTxs = await pendingTransactions(_payee);
-    const gasHeight = 5000000000;
-    const gasLimit = 6750000;
+    const gasHeight = 1750000000;
+    const gasLimit = 87500;
 
     return await new Promise((resolve, reject) =>
     _rain.methods.tipTransfer(zeroAddress, _recipent, _amount).send({
@@ -423,8 +467,8 @@ tokenTransfer = async(_payee, _recipent, _amount, _feeState) => {
    const properNonce = await _web3.eth.getTransactionCount(_payee);
    const pendingTxs = await pendingTransactions(_payee);
    const feeCost = feeImplementation(_feeState) * _ether;
-   const gasHeight = 10000000000;
-   const gasLimit = 6750000;
+   const gasHeight = 2100000000;
+   const gasLimit = 100000;
 
    return await new Promise((resolve, reject) =>
       _rain.methods.tipTransfer(tokenLocation, _recipent, _amount).send({
@@ -455,10 +499,8 @@ tokenTransfer = async(_payee, _recipent, _amount, _feeState) => {
    const properNonce = await _web3.eth.getTransactionCount(_payee);
    const feeCost = (feeImplementation(true) + gasIndex) * _ether;
    const pendingTxs = await pendingTransactions(_payee);
-   const gasHeight = 17500000000;
-   const gasLimit = 8000000;
-
-   console.log(contract, _users, _amount);
+   const gasHeight = 5100000000;
+   const gasLimit = 200000;
 
    return await new Promise((resolve, reject) =>
       _rain.methods.multiTransfer(contract, _users, _amount)
@@ -545,20 +587,20 @@ userGas = async(_platform ,_user) => {
   }
 
   module.exports.approved = approved = async(_payee) => {
-    var value = await _instance.methods.allowance(_payee, multiLocation).call();
+    var value = await _instance.methods.allowance(_payee, tipLocation).call();
     return parseFloat(value/_ether).toFixed(2);
-}
+  }
 
  module.exports.approveTokens = approveTokens = async(_payee, _amount) => {
      var standardApproval = _web3.utils.toHex(_web3.utils.toBN(_amount).mul(_web3.utils.toBN(1e18)));
 
      const properNonce = await _web3.eth.getTransactionCount(_payee);
      const pendingTxs = await pendingTransactions(_payee);
-     const gasHeight = 5000000000;
-     const gasLimit = 6750000;
+     const gasHeight = 1500000000;
+     const gasLimit = 50000;
 
      return await new Promise((resolve, reject) =>
-        _instance.methods.approve(multiLocation, standardApproval)
+        _instance.methods.approve(tipLocation, standardApproval)
         .send({
           nonce: _web3.utils.toHex(properNonce+pendingTxs),
           gasPrice: _web3.utils.toHex(gasHeight),
@@ -569,32 +611,11 @@ userGas = async(_platform ,_user) => {
       }));
   }
 
-  module.exports.resetApprove = resetApprove = async(_payee) => {
-      const currentValue = await _instance.methods.allowance(_payee, multiLocation).call()
-      var subtractValue =  _web3.utils.toHex(_web3.utils.toBN(currentValue));
-
-      const properNonce = await _web3.eth.getTransactionCount(_payee);
-      const pendingTxs = await pendingTransactions(_payee);
-      const gasHeight = 5000000000;
-      const gasLimit = 6750000;
-
-      return await new Promise((resolve, reject) =>
-        _instance.methods.decreaseAllowance(multiLocation, subtractValue)
-        .send({
-         nonce: _web3.utils.toHex(properNonce+pendingTxs),
-         gasPrice: _web3.utils.toHex(gasHeight),
-         gasLimit: _web3.utils.toHex(gasLimit),
-         from: _payee
-       }).on('transactionHash', (hash) => {
-          resolve(hash);
-       }));
-   }
-
   feeImplementation = (_bool) => {
     if(_bool == false){
-      return ((0.001));
+      return ((0.0001));
     } else if(_bool == true){
-      return ((0.001*5));
+      return ((0.0001*5));
     } else if(_bool === "withdraw") {
       return (0);
     }
