@@ -18,6 +18,7 @@
 
 #include <grpc/support/port_platform.h>
 
+#include "src/core/ext/transport/chttp2/transport/context_list.h"
 #include "src/core/ext/transport/chttp2/transport/internal.h"
 
 #include <limits.h>
@@ -107,7 +108,7 @@ static void maybe_initiate_ping(grpc_chttp2_transport* t) {
   GRPC_STATS_INC_HTTP2_PINGS_SENT();
   t->ping_state.last_ping_sent_time = now;
   if (grpc_http_trace.enabled() || grpc_bdp_estimator_trace.enabled()) {
-    gpr_log(GPR_INFO, "%s: Ping sent [%p]: %d/%d",
+    gpr_log(GPR_INFO, "%s: Ping sent [%s]: %d/%d",
             t->is_client ? "CLIENT" : "SERVER", t->peer_string,
             t->ping_state.pings_before_data_required,
             t->ping_policy.max_pings_without_data);
@@ -605,11 +606,18 @@ grpc_chttp2_begin_write_result grpc_chttp2_begin_write(
      (according to available window sizes) and add to the output buffer */
   while (grpc_chttp2_stream* s = ctx.NextStream()) {
     StreamWriteContext stream_ctx(&ctx, s);
+    size_t orig_len = t->outbuf.length;
     stream_ctx.FlushInitialMetadata();
     stream_ctx.FlushWindowUpdates();
     stream_ctx.FlushData();
     stream_ctx.FlushTrailingMetadata();
-
+    if (t->outbuf.length > orig_len) {
+      /* Add this stream to the list of the contexts to be traced at TCP */
+      s->byte_counter += t->outbuf.length - orig_len;
+      if (s->traced && grpc_endpoint_can_track_err(t->ep)) {
+        grpc_core::ContextList::Append(&t->cl, s);
+      }
+    }
     if (stream_ctx.stream_became_writable()) {
       if (!grpc_chttp2_list_add_writing_stream(t, s)) {
         /* already in writing list: drop ref */

@@ -116,6 +116,7 @@ class Client extends EventEmitter {
      * Presences that have been received for the client user's friends, mapped by user IDs
      * <warn>This is only filled when using a user account.</warn>
      * @type {Collection<Snowflake, Presence>}
+     * @deprecated
      */
     this.presences = new Collection();
 
@@ -186,11 +187,11 @@ class Client extends EventEmitter {
 
   /**
    * Current status of the client's connection to Discord
-   * @type {?number}
+   * @type {Status}
    * @readonly
    */
   get status() {
-    return this.ws.connection.status;
+    return this.ws.connection ? this.ws.connection.status : Constants.Status.IDLE;
   }
 
   /**
@@ -296,6 +297,7 @@ class Client extends EventEmitter {
    * <info>This can be done automatically every 30 seconds by enabling {@link ClientOptions#sync}.</info>
    * <warn>This is only available when using a user account.</warn>
    * @param {Guild[]|Collection<Snowflake, Guild>} [guilds=this.guilds] An array or collection of guilds to sync
+   * @deprecated
    */
   syncGuilds(guilds = this.guilds) {
     if (this.user.bot) return;
@@ -323,7 +325,7 @@ class Client extends EventEmitter {
    * @returns {Promise<Invite>}
    * @example
    * client.fetchInvite('https://discord.gg/bRCvFy9')
-   *   .then(invite => console.log(`Obtained invite with code: ${invite.code}`)
+   *   .then(invite => console.log(`Obtained invite with code: ${invite.code}`))
    *   .catch(console.error);
    */
   fetchInvite(invite) {
@@ -395,8 +397,9 @@ class Client extends EventEmitter {
    * <warn>Bots can only fetch their own profile.</warn>
    * @param {Snowflake} [id='@me'] ID of application to fetch
    * @returns {Promise<OAuth2Application>}
+   * @example
    * client.fetchApplication()
-   *   .then(application => console.log(`Obtained application with name: ${application.name}`)
+   *   .then(application => console.log(`Obtained application with name: ${application.name}`))
    *   .catch(console.error);
    */
   fetchApplication(id = '@me') {
@@ -509,7 +512,7 @@ class Client extends EventEmitter {
    * @param {ClientOptions} [options=this.options] Options to validate
    * @private
    */
-  _validateOptions(options = this.options) {
+  _validateOptions(options = this.options) { // eslint-disable-line complexity
     if (typeof options.shardCount !== 'number' || isNaN(options.shardCount)) {
       throw new TypeError('The shardCount option must be a number.');
     }
@@ -540,6 +543,9 @@ class Client extends EventEmitter {
       throw new TypeError('The restWsBridgeTimeout option must be a number.');
     }
     if (!(options.disabledEvents instanceof Array)) throw new TypeError('The disabledEvents option must be an Array.');
+    if (typeof options.retryLimit !== 'number' || isNaN(options.retryLimit)) {
+      throw new TypeError('The retryLimit  options must be a number.');
+    }
   }
 }
 

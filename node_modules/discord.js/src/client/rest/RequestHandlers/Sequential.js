@@ -66,14 +66,20 @@ class SequentialRequestHandler extends RequestHandler {
         if (err) {
           if (err.status === 429) {
             this.queue.unshift(item);
-            this.restManager.client.setTimeout(() => {
+            this.client.setTimeout(() => {
               this.globalLimit = false;
               resolve();
-            }, Number(res.headers['retry-after']) + this.restManager.client.options.restTimeOffset);
+            }, Number(res.headers['retry-after']) + this.client.options.restTimeOffset);
             if (res.headers['x-ratelimit-global']) this.globalLimit = true;
           } else if (err.status >= 500 && err.status < 600) {
-            this.queue.unshift(item);
-            this.restManager.client.setTimeout(resolve, 1e3 + this.restManager.client.options.restTimeOffset);
+            if (item.retries === this.client.options.retryLimit) {
+              item.reject(err);
+              resolve();
+            } else {
+              item.retries++;
+              this.queue.unshift(item);
+              this.client.setTimeout(resolve, 1e3 + this.client.options.restTimeOffset);
+            }
           } else {
             item.reject(err.status >= 400 && err.status < 500 ?
               new DiscordAPIError(res.request.path, res.body, res.request.method) : err);
@@ -89,10 +95,10 @@ class SequentialRequestHandler extends RequestHandler {
                * Emitted when the client hits a rate limit while making a request
                * @event Client#rateLimit
                * @param {Object} rateLimitInfo Object containing the rate limit info
-               * @param {number} rateLimitInfo.requestLimit Number of requests that can be made to this endpoint
+               * @param {number} rateLimitInfo.limit Number of requests that can be made to this endpoint
                * @param {number} rateLimitInfo.timeDifference Delta-T in ms between your system and Discord servers
-               * @param {string} rateLimitInfo.method HTTP method used for request that triggered this event
                * @param {string} rateLimitInfo.path Path used for request that triggered this event
+               * @param {string} rateLimitInfo.method HTTP method used for request that triggered this event
                */
               this.client.emit(RATE_LIMIT, {
                 limit: this.requestLimit,
@@ -101,9 +107,9 @@ class SequentialRequestHandler extends RequestHandler {
                 method: item.request.method,
               });
             }
-            this.restManager.client.setTimeout(
+            this.client.setTimeout(
               () => resolve(data),
-              this.requestResetTime - Date.now() + this.timeDifference + this.restManager.client.options.restTimeOffset
+              this.requestResetTime - Date.now() + this.timeDifference + this.client.options.restTimeOffset
             );
           } else {
             resolve(data);

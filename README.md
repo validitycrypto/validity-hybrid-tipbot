@@ -17,6 +17,8 @@ A tipbot that is interoperable across Telegram and Discord.
 ## Installation
 
 * Replace the associated blank values within `bot.js` with your correlating project targets
+* `npm install -g truffle`
+* `truffle compile`
 * `npm install`
 * `node bot.js`
 
@@ -78,5 +80,5 @@ A tipbot that is interoperable across Telegram and Discord.
 
  ##### Validation
  ```
-/help
+/validation
  ```

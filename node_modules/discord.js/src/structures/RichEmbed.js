@@ -140,10 +140,11 @@ class RichEmbed {
 
   /**
    * Sets the timestamp of this embed.
-   * @param {Date} [timestamp=new Date()] The timestamp
+   * @param {Date|number} [timestamp=Date.now()] The timestamp or date
    * @returns {RichEmbed} This embed
    */
-  setTimestamp(timestamp = new Date()) {
+  setTimestamp(timestamp = Date.now()) {
+    if (timestamp instanceof Date) timestamp = timestamp.getTime();
     this.timestamp = timestamp;
     return this;
   }
@@ -233,6 +234,21 @@ class RichEmbed {
     files = files.map(file => file instanceof Attachment ? file.file : file);
     this.files = this.files.concat(files);
     return this;
+  }
+
+  /**
+   * The accumulated length for the embed title, description, fields, author and footer text
+   * @type {number}
+   * @readonly
+   */
+  get length() {
+    return (
+      (this.title ? this.title.length : 0) +
+      (this.description ? this.description.length : 0) +
+      (this.fields.length >= 1 ? this.fields.reduce((prev, curr) =>
+        prev + curr.name.length + curr.value.length, 0) : 0) +
+      (this.footer ? this.footer.text.length : 0) +
+      (this.author ? this.author.name.length : 0));
   }
 
   /**

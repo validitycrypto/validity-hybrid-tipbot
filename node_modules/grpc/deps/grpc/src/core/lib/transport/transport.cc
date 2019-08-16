@@ -27,8 +27,11 @@
 #include <grpc/support/log.h>
 #include <grpc/support/sync.h>
 
+#include "src/core/lib/gpr/alloc.h"
 #include "src/core/lib/gpr/string.h"
+#include "src/core/lib/gprpp/memory.h"
 #include "src/core/lib/iomgr/executor.h"
+#include "src/core/lib/iomgr/iomgr.h"
 #include "src/core/lib/slice/slice_internal.h"
 #include "src/core/lib/slice/slice_string_helpers.h"
 #include "src/core/lib/transport/transport_impl.h"
@@ -62,8 +65,9 @@ void grpc_stream_unref(grpc_stream_refcount* refcount, const char* reason) {
 void grpc_stream_unref(grpc_stream_refcount* refcount) {
 #endif
   if (gpr_unref(&refcount->refs)) {
-    if (grpc_core::ExecCtx::Get()->flags() &
-        GRPC_EXEC_CTX_FLAG_THREAD_RESOURCE_LOOP) {
+    if (!grpc_iomgr_is_any_background_poller_thread() &&
+        (grpc_core::ExecCtx::Get()->flags() &
+         GRPC_EXEC_CTX_FLAG_THREAD_RESOURCE_LOOP)) {
       /* Ick.
          The thread we're running on MAY be owned (indirectly) by a call-stack.
          If that's the case, destroying the call-stack MAY try to destroy the
@@ -72,7 +76,7 @@ void grpc_stream_unref(grpc_stream_refcount* refcount) {
          Throw this over to the executor (on a core-owned thread) and process it
          there. */
       refcount->destroy.scheduler =
-          grpc_executor_scheduler(GRPC_EXECUTOR_SHORT);
+          grpc_core::Executor::Scheduler(grpc_core::ExecutorJobType::SHORT);
     }
     GRPC_CLOSURE_SCHED(&refcount->destroy, GRPC_ERROR_NONE);
   }
@@ -149,7 +153,7 @@ void grpc_transport_move_stats(grpc_transport_stream_stats* from,
 }
 
 size_t grpc_transport_stream_size(grpc_transport* transport) {
-  return transport->vtable->sizeof_stream;
+  return GPR_ROUND_UP_TO_ALIGNMENT_SIZE(transport->vtable->sizeof_stream);
 }
 
 void grpc_transport_destroy(grpc_transport* transport) {
@@ -240,25 +244,26 @@ void grpc_transport_stream_op_batch_finish_with_failure(
   GRPC_ERROR_UNREF(error);
 }
 
-typedef struct {
+struct made_transport_op {
   grpc_closure outer_on_complete;
-  grpc_closure* inner_on_complete;
+  grpc_closure* inner_on_complete = nullptr;
   grpc_transport_op op;
-} made_transport_op;
+  made_transport_op() {
+    memset(&outer_on_complete, 0, sizeof(outer_on_complete));
+  }
+};
 
 static void destroy_made_transport_op(void* arg, grpc_error* error) {
   made_transport_op* op = static_cast<made_transport_op*>(arg);
   GRPC_CLOSURE_SCHED(op->inner_on_complete, GRPC_ERROR_REF(error));
-  gpr_free(op);
+  grpc_core::Delete<made_transport_op>(op);
 }
 
 grpc_transport_op* grpc_make_transport_op(grpc_closure* on_complete) {
-  made_transport_op* op =
-      static_cast<made_transport_op*>(gpr_malloc(sizeof(*op)));
+  made_transport_op* op = grpc_core::New<made_transport_op>();
   GRPC_CLOSURE_INIT(&op->outer_on_complete, destroy_made_transport_op, op,
                     grpc_schedule_on_exec_ctx);
   op->inner_on_complete = on_complete;
-  memset(&op->op, 0, sizeof(op->op));
   op->op.on_consumed = &op->outer_on_complete;
   return &op->op;
 }

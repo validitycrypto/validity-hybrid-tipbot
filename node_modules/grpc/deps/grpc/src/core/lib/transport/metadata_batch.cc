@@ -139,6 +139,7 @@ static void link_head(grpc_mdelem_list* list, grpc_linked_mdelem* storage) {
   GPR_ASSERT(!GRPC_MDISNULL(storage->md));
   storage->prev = nullptr;
   storage->next = list->head;
+  storage->reserved = nullptr;
   if (list->head != nullptr) {
     list->head->prev = storage;
   } else {
@@ -226,7 +227,7 @@ void grpc_metadata_batch_remove(grpc_metadata_batch* batch,
 }
 
 void grpc_metadata_batch_set_value(grpc_linked_mdelem* storage,
-                                   grpc_slice value) {
+                                   const grpc_slice& value) {
   grpc_mdelem old_mdelem = storage->md;
   grpc_mdelem new_mdelem = grpc_mdelem_from_slices(
       grpc_slice_ref_internal(GRPC_MDKEY(old_mdelem)), value);

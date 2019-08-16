@@ -166,7 +166,7 @@ class Message {
     const clone = Util.cloneObject(this);
     this._edits.unshift(clone);
 
-    if ('editedTimestamp' in data) this.editedTimestamp = new Date(data.edited_timestamp).getTime();
+    if ('edited_timestamp' in data) this.editedTimestamp = new Date(data.edited_timestamp).getTime();
     if ('content' in data) this.content = data.content;
     if ('pinned' in data) this.pinned = data.pinned;
     if ('tts' in data) this.tts = data.tts;
@@ -345,8 +345,8 @@ class Message {
    * @readonly
    */
   get pinnable() {
-    return !this.guild ||
-      this.channel.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_MESSAGES);
+    return this.type === 'DEFAULT' && (!this.guild ||
+      this.channel.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_MESSAGES));
   }
 
   /**
@@ -509,6 +509,7 @@ class Message {
    * Marks the message as read.
    * <warn>This is only available when using a user account.</warn>
    * @returns {Promise<Message>}
+   * @deprecated
    */
   acknowledge() {
     return this.client.rest.methods.ackMessage(this);

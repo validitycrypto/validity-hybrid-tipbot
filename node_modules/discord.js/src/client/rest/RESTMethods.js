@@ -59,6 +59,13 @@ class RESTMethods {
     });
   }
 
+  fetchEmbed(guildID) {
+    return this.rest.makeRequest('get', Endpoints.Guild(guildID).embed, true).then(data => ({
+      enabled: data.enabled,
+      channel: data.channel_id ? this.client.channels.get(data.channel_id) : null,
+    }));
+  }
+
   sendMessage(channel, content, { tts, nonce, embed, disableEveryone, split, code, reply } = {}, files = null) {
     return new Promise((resolve, reject) => { // eslint-disable-line complexity
       if (typeof content !== 'undefined') content = this.client.resolver.resolveString(content);
@@ -253,12 +260,33 @@ class RESTMethods {
     });
   }
 
-  createChannel(guild, channelName, channelType, overwrites, reason) {
+  createChannel(guild, name, options) {
+    const {
+      type,
+      topic,
+      nsfw,
+      bitrate,
+      userLimit,
+      parent,
+      permissionOverwrites,
+      position,
+      rateLimitPerUser,
+      reason,
+    } = options;
     return this.rest.makeRequest('post', Endpoints.Guild(guild).channels, true, {
-      name: channelName,
-      type: channelType ? Constants.ChannelTypes[channelType.toUpperCase()] : 'text',
-      permission_overwrites: resolvePermissions.call(this, overwrites, guild),
-    }, undefined, reason).then(data => this.client.actions.ChannelCreate.handle(data).channel);
+      name,
+      topic,
+      type: type ? Constants.ChannelTypes[type.toUpperCase()] : 'text',
+      nsfw,
+      bitrate,
+      user_limit: userLimit,
+      parent_id: parent instanceof Channel ? parent.id : parent,
+      permission_overwrites: resolvePermissions.call(this, permissionOverwrites, guild),
+      position,
+      rate_limit_per_user: rateLimitPerUser,
+    },
+    undefined,
+    reason).then(data => this.client.actions.ChannelCreate.handle(data).channel);
   }
 
   createDM(recipient) {
@@ -321,9 +349,11 @@ class RESTMethods {
     data.position = _data.position || channel.position;
     data.bitrate = _data.bitrate || (channel.bitrate ? channel.bitrate * 1000 : undefined);
     data.user_limit = typeof _data.userLimit !== 'undefined' ? _data.userLimit : channel.userLimit;
-    data.parent_id = _data.parent;
+    data.parent_id = _data.parent instanceof Channel ? _data.parent.id : _data.parent;
     data.permission_overwrites = _data.permissionOverwrites ?
       resolvePermissions.call(this, _data.permissionOverwrites, channel.guild) : undefined;
+    data.rate_limit_per_user = typeof _data.rateLimitPerUser !== 'undefined' ?
+      _data.rateLimitPerUser : channel.rateLimitPerUser;
     return this.rest.makeRequest('patch', Endpoints.Channel(channel), true, data, undefined, reason).then(newData =>
       this.client.actions.ChannelUpdate.handle(newData).updated
     );
@@ -457,7 +487,7 @@ class RESTMethods {
     return this.rest.makeRequest('get', Endpoints.Channel(channel).Message(messageID), true);
   }
 
-  putGuildMember(guild, user, options) {
+  putGuildMember(guild, userID, options) {
     options.access_token = options.accessToken;
     if (options.roles) {
       const roles = options.roles;
@@ -465,7 +495,7 @@ class RESTMethods {
         options.roles = roles.map(role => role.id);
       }
     }
-    return this.rest.makeRequest('put', Endpoints.Guild(guild).Member(user.id), true, options)
+    return this.rest.makeRequest('put', Endpoints.Guild(guild).Member(userID), true, options)
       .then(data => this.client.actions.GuildMemberGet.handle(guild, data).member);
   }
 
@@ -478,8 +508,15 @@ class RESTMethods {
 
   updateGuildMember(member, data, reason) {
     if (data.channel) {
-      data.channel_id = this.client.resolver.resolveChannel(data.channel).id;
-      data.channel = null;
+      const channel = this.client.resolver.resolveChannel(data.channel);
+      if (!channel || channel.guild.id !== member.guild.id || channel.type !== 'voice') {
+        return Promise.reject(new Error('Could not resolve channel to a guild voice channel.'));
+      }
+      data.channel_id = channel.id;
+      data.channel = undefined;
+    } else if (data.channel === null) {
+      data.channel_id = null;
+      data.channel = undefined;
     }
     if (data.roles) data.roles = data.roles.map(role => role instanceof Role ? role.id : role);
 
@@ -597,6 +634,14 @@ class RESTMethods {
     });
   }
 
+  getGuildBan(guild, user) {
+    const id = this.client.resolver.resolveUserID(user);
+    return this.rest.makeRequest('get', `${Endpoints.Guild(guild).bans}/${id}`, true).then(ban => ({
+      reason: ban.reason,
+      user: this.client.dataManager.newUser(ban.user),
+    }));
+  }
+
   getGuildBans(guild) {
     return this.rest.makeRequest('get', Endpoints.Guild(guild).bans, true).then(bans =>
       bans.reduce((collection, ban) => {
@@ -673,6 +718,11 @@ class RESTMethods {
       }
       return invites;
     });
+  }
+
+  getGuildVanityCode(guild) {
+    return this.rest.makeRequest('get', Endpoints.Guild(guild).vanityURL, true)
+      .then(res => res.code);
   }
 
   pruneGuildMembers(guild, days, dry, reason) {
@@ -851,6 +901,13 @@ class RESTMethods {
         channels,
       }).guild
     );
+  }
+
+  updateEmbed(guildID, embed, reason) {
+    return this.rest.makeRequest('patch', Endpoints.Guild(guildID).embed, true, {
+      enabled: embed.enabled,
+      channel_id: this.client.resolver.resolveChannelID(embed.channel),
+    }, undefined, reason);
   }
 
   setRolePositions(guildID, roles) {

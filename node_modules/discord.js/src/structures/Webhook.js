@@ -1,3 +1,4 @@
+const EventEmitter = require('events');
 const path = require('path');
 const Util = require('../util/Util');
 const Attachment = require('./Attachment');
@@ -6,8 +7,9 @@ const RichEmbed = require('./RichEmbed');
 /**
  * Represents a webhook.
  */
-class Webhook {
+class Webhook extends EventEmitter {
   constructor(client, dataOrID, token) {
+    super();
     if (client) {
       /**
        * The client that instantiated the webhook
@@ -33,6 +35,7 @@ class Webhook {
 
     /**
      * The token for the webhook
+     * @name Webhook#token
      * @type {string}
      */
     Object.defineProperty(this, 'token', { value: data.token, writable: true, configurable: true });

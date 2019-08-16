@@ -31,9 +31,11 @@
 #include "src/core/lib/transport/static_metadata.h"
 
 typedef struct grpc_linked_mdelem {
+  grpc_linked_mdelem() {}
+
   grpc_mdelem md;
-  struct grpc_linked_mdelem* next;
-  struct grpc_linked_mdelem* prev;
+  struct grpc_linked_mdelem* next = nullptr;
+  struct grpc_linked_mdelem* prev = nullptr;
   void* reserved;
 } grpc_linked_mdelem;
 
@@ -72,7 +74,7 @@ grpc_error* grpc_metadata_batch_substitute(grpc_metadata_batch* batch,
                                            grpc_mdelem new_value);
 
 void grpc_metadata_batch_set_value(grpc_linked_mdelem* storage,
-                                   grpc_slice value);
+                                   const grpc_slice& value);
 
 /** Add \a storage to the beginning of \a batch. storage->md is
     assumed to be valid.
