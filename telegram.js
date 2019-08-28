@@ -5,7 +5,7 @@ const Extra = require('telegraf/extra');
 const wallet = require('./wallet.js');
 const telegraf = require('telegraf');
 
-const tbot = new telegraf("");
+const tbot = new telegraf("X");
 
 const transactionModal  = (_hash) => Markup.inlineKeyboard([
   Markup.urlButton('🔗 Tx',`https://etherscan.io/tx/${_hash}`),
@@ -29,7 +29,6 @@ const menuModal = Markup.inlineKeyboard([
 
 module.exports.initialiseTelegram = initialiseTelegram = async(_token) => {
    await tbot.launch();
-
  }
 
 
@@ -108,8 +107,8 @@ tbot.command('balance', async(ctx) => {
   } else {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
-    return ctx.replyWithMarkdown(`@${ctx.message.from.username}'s funds: ` + ` **🔹	**` + '`' +  ` ${wallet.presentNumber(gas, true)}`
-    + ' ETH ' + '`' + ` 🌀`  + '`' + ` ${wallet.presentNumber(token, false)}`  + ' VLDY' + '`');
+    return ctx.reply(`@${ctx.message.from.username}'s funds: ` + ` 🔹` + ` ${wallet.presentNumber(gas, true)}`
+    + ' ETH ' + ` 🌀`  + ` ${wallet.presentNumber(token, false)}`  + ' VLDY');
     }
   }
 })
@@ -124,8 +123,8 @@ tbot.action('balance' , async(ctx) => {
     var token = await wallet.tokenbalance(account);
     var gas = await wallet.gasBalance(account);
 
-    return ctx.replyWithMarkdown(`@${ctx.message.from.username}'s funds: ` + ` **🔹	**` + '`' +  ` ${wallet.presentNumber(gas, true)}`
-    + ' ETH ' + '`' + ` 🌀`  + '`' + ` ${wallet.presentNumber(token, false)}`  + ' VLDY' + '`');
+    return ctx.reply(`@${ctx.callbackQuery.from.username}'s funds: ` + ` 🔹	` +  `${wallet.presentNumber(gas, true)}`
+    + ' ETH ' + ` 🌀` + ` ${wallet.presentNumber(token, false)}`  + ' VLDY');
     }
   }
 })
@@ -160,8 +159,8 @@ tbot.command('stats', async(ctx) => {
   await wallet.logCall(ctx.message.from.id);
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
-  return ctx.replyWithMarkdown(`@${ctx.message.from.username}'s stats:'`
-    + `\n**🔹	** ` + `${wallet.presentNumber(gas[ctx.message.from.username])} ETH `
+  return ctx.reply(`@${ctx.message.from.username}'s stats:'`
+    + `\n🔹 ` + `${wallet.presentNumber(gas[ctx.message.from.username])} ETH `
     + `\n🌀 ` + `${wallet.presentNumber(token[ctx.message.from.username])} VLDY`);
   }
 })
@@ -171,8 +170,8 @@ tbot.action('stats', async(ctx) => {
   await wallet.logCall(ctx.callbackQuery.from.id);
   var token = await wallet.tokenTotal("telegram");
   var gas = await wallet.gasTotal("telegram");
-  return ctx.replyWithMarkdown(`@${ctx.callbackQuery.from.username}'s stats:'`
-    `\n**🔹	** ` + `${wallet.presentNumber(gas[ctx.callbackQuery.from.username])} ETH `
+  return ctx.reply(`@${ctx.callbackQuery.from.username}'s stats:'`
+    `\n🔹` + `${wallet.presentNumber(gas[ctx.callbackQuery.from.username])} ETH `
     + `\n🌀 ` + `${wallet.presentNumber(token[ctx.callbackQuery.from.username])} VLDY`);
   }
 })
@@ -181,10 +180,15 @@ tbot.command('allowance', async(ctx) => {
   if(await commandLimit(ctx.message.from.id) == true){
   await wallet.logCall(ctx.message.from.id);
 
-  var userAccount = await wallet.viewAccount(ctx.message.from.username);
-  var currentallowance = await wallet.approved(userAccount);
+  var account = await wallet.viewAccount(ctx.message.from.username);
+  if(account == undefined){
+    return ctx.replyWithMarkdown('⚠️ ***Please generate an account first by using the command:*** `/generate`');
+  } else {
+    var userAccount = await wallet.viewAccount(ctx.message.from.username);
+    var currentallowance = await wallet.approved(userAccount);
 
-  return ctx.replyWithMarkdown(`@${ctx.message.from.username}'s allowance:  🌀` + '`' + ` ${wallet.presentNumber(currentallowance)} VLDY`+ '`');
+    return ctx.reply(`@${ctx.message.from.username}'s allowance:  🌀` + ` ${wallet.presentNumber(currentallowance)} VLDY`);
+   }
   }
 })
 
@@ -192,7 +196,7 @@ tbot.command('deposit', async(ctx) => {
   if(await commandLimit(ctx.message.from.id) == true){
   await wallet.logCall(ctx.message.from.id);
   var nuo = await wallet.viewAccount(ctx.message.from.username);
-  return ctx.replyWithMarkdown(`@${ctx.message.from.username} your depositing address is:` + '`' +  `${nuo}` + '`');
+  return ctx.reply(`@${ctx.message.from.username} your depositing address is:` +  `${nuo}`);
   }
 })
 
@@ -200,7 +204,7 @@ tbot.action('deposit', async(ctx) => {
   if(await commandLimit(ctx.callbackQuery.from.id) == true){
   await wallet.logCall(ctx.callbackQuery.from.id);
   var nuo = await wallet.viewAccount(ctx.callbackQuery.from.username);
-  return ctx.replyWithMarkdown(`@${ctx.message.from.username} your depositing address is:` + '`' +  `${nuo}` + '`');
+  return ctx.reply(`@${ctx.callbackQuery.from.username} your depositing address is:` + `${nuo}`);
   }
 })
 

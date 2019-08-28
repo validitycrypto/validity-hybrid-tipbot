@@ -313,7 +313,12 @@ commandApprove= async(_msg) => {
 commandAllowence = async(_msg) => {
     var userAccount = await wallet.viewAccount(_msg.author.username);
     var currentAllowence = await wallet.approved(userAccount);
-    return _msg.channel.send(`<@!${_msg.author.id}>'s allowence: ` + '`' + `${wallet.presentNumber(currentAllowence)} VLDY` + '`' + ` <:vldy:490221401232506882>`);
+
+    if(userAccount == undefined){
+      return _msg.channel.send('⚠️ ***lease generate an account first by using the command:** `/generate`');
+    } else {
+      return _msg.channel.send(`<@!${_msg.author.id}>'s allowence: ` + ` <:vldy:490221401232506882> ` + '`' + `${wallet.presentNumber(currentAllowence)} VLDY` + '`' );
+    }
 }
 
 client.on('message', async(msg) => {

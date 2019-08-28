@@ -8,10 +8,11 @@ const jsonTip = require("./build/contracts/Tipbot.json");
 const jsonToken = require("./build/contracts/ERC20d.json");
 
 const Web3 = require('web3');
+const fetch = require('node-fetch');
 const admin = require("firebase-admin");
 
-const _provider = new Web3.providers.WebsocketProvider('wss://mainnet.infura.io/ws/v3/<API-KEY>')
-const _testnet = new Web3.providers.WebsocketProvider('wss://rinkeby.infura.io/ws/v3/<API-KEY>')
+const _provider = new Web3.providers.WebsocketProvider('wss://mainnet.infura.io/ws/v3/API')
+const _testnet = new Web3.providers.WebsocketProvider('wss://rinkeby.infura.io/ws/v3/API')
 const _web3 = new Web3(_provider);
 const _test3 = new Web3(_testnet);
 
@@ -20,6 +21,14 @@ const _mvp = new _test3.eth.Contract(jsonMVP.abi, mvpLocation);
 const _rain = new _web3.eth.Contract(jsonTip.abi, tipLocation);
 
 const _ether = Math.pow(10,18);
+
+getGas = async(_bool) => {
+ return await fetch("https://ethgasstation.info/json/ethgasAPI.json")
+    .then(res => res.json()).then(json => {
+      if(_bool) return _web3.utils.toBN(parseFloat(json.fast/10)*1000000000);
+      else if(!_bool) return parseFloat(parseFloat(json.fast/10)/_ether);
+    });
+}
 
 module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) => {
    await _web3.eth.accounts.wallet.clear();
@@ -101,13 +110,12 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
    }
 
    module.exports.proofBalances = proofBalances = async(_account, _amount, _asset, _rain) => {
-      var gasFee = feeImplementation(_rain);
+      var gasFee = feeImplementation(_rain) + await getGas(false);
       var accountToken = await tokenBalance(_account);
       var approvalParse = await approved(_account);
       var accountGas = await gasBalance(_account);
 
       if(_rain == false){
-        gasFee += 0.00015;
         if(( _asset == "ETH" || _asset == "ETH")){
           var totalGas = gasFee + _amount;
           if(totalGas > accountGas){
@@ -129,7 +137,6 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
           }
       }
     } else if(_rain == true){
-      gasFee += 0.0025;
       if(( _asset == "ETH" || _asset == "ETH")){
         var totalGas = gasFee + (_amount*5);
         if(totalGas > accountGas){
@@ -153,7 +160,6 @@ module.exports.initialiseDatabase  = initialiseDatabase = async(_preferences) =>
         }
       }
     } else if(_rain === "withdraw"){
-      gasFee += 0.00015;
       if(( _asset == "ETH" || _asset == "ETH")){
         var totalGas = gasFee + _amount;
         if(totalGas > accountGas){
@@ -279,7 +285,7 @@ module.exports.tipRain = tipRain = async(_platform, _username, _payee, _amount, 
    module.exports.logCall = logCall = async(_chatid) => {
      _chatid = "x" + _chatid;
     var timestampLimit = new Date();
-    await timestampLimit.setSeconds(timestampLimit.getSeconds() + 3);
+    await timestampLimit.setSeconds(timestampLimit.getSeconds() + 10);
       await admin.firestore().collection(_chatid).add({
         call: timestampLimit.getTime()
       })
@@ -441,8 +447,8 @@ module.exports.gasTotal = gasTotal = async( _platform) => {
 
     const properNonce = await _web3.eth.getTransactionCount(_payee);
     const pendingTxs = await pendingTransactions(_payee);
-    const gasHeight = 1750000000;
-    const gasLimit = 87500;
+    const gasHeight = await getGas(true);
+    const gasLimit = 750000;
 
     return await new Promise((resolve, reject) =>
     _rain.methods.tipTransfer(zeroAddress, _recipent, _amount).send({
@@ -467,8 +473,9 @@ tokenTransfer = async(_payee, _recipent, _amount, _feeState) => {
    const properNonce = await _web3.eth.getTransactionCount(_payee);
    const pendingTxs = await pendingTransactions(_payee);
    const feeCost = feeImplementation(_feeState) * _ether;
-   const gasHeight = 2100000000;
+   const gasHeight = await getGas(true);
    const gasLimit = 100000;
+
 
    return await new Promise((resolve, reject) =>
       _rain.methods.tipTransfer(tokenLocation, _recipent, _amount).send({
@@ -499,8 +506,8 @@ tokenTransfer = async(_payee, _recipent, _amount, _feeState) => {
    const properNonce = await _web3.eth.getTransactionCount(_payee);
    const feeCost = (feeImplementation(true) + gasIndex) * _ether;
    const pendingTxs = await pendingTransactions(_payee);
-   const gasHeight = 5100000000;
-   const gasLimit = 200000;
+   const gasHeight = await getGas(true);
+   const gasLimit = 150000;
 
    return await new Promise((resolve, reject) =>
       _rain.methods.multiTransfer(contract, _users, _amount)
@@ -596,8 +603,8 @@ userGas = async(_platform ,_user) => {
 
      const properNonce = await _web3.eth.getTransactionCount(_payee);
      const pendingTxs = await pendingTransactions(_payee);
-     const gasHeight = 1500000000;
-     const gasLimit = 50000;
+     const gasHeight = await getGas(true);
+     const gasLimit = 37500;
 
      return await new Promise((resolve, reject) =>
         _instance.methods.approve(tipLocation, standardApproval)
@@ -615,7 +622,7 @@ userGas = async(_platform ,_user) => {
     if(_bool == false){
       return ((0.0001));
     } else if(_bool == true){
-      return ((0.0001*5));
+      return ((0.0001));
     } else if(_bool === "withdraw") {
       return (0);
     }
